@@ -65,23 +65,22 @@ async fn main() -> std::io::Result<()> {
 
     audio_rtp_params.encodings = vec![
         RtpEncodingParameters {
-            ssrc: Some(2),
+            ssrc: Some(77),
+            dtx: Some(true),
             ..RtpEncodingParameters::default()
         }
     ];
 
     // Initialise Video codec
     let mut parameters = RtpCodecParametersParameters::from([
-        ("packetization-mode", 1_u32.into()),
-        ("level-asymmetry-allowed", 1_u32.into())
+        ("packetization-mode", 0_u32.into()),
+        ("level-asymmetry-allowed", 0_u32.into())
     ]);
-
-    parameters.insert("profile-level-id", "42001f");
 
     options.media_codecs.push(
         RtpCodecCapability::Video {
             mime_type: MimeTypeVideo::H264,
-            preferred_payload_type: None,
+            preferred_payload_type: Some(96),//None,
             clock_rate: NonZeroU32::new(90_000).unwrap(),
             parameters: parameters.clone(),
             rtcp_feedback: vec! [
@@ -113,7 +112,9 @@ async fn main() -> std::io::Result<()> {
 
     video_rtp_params.encodings = vec![
         RtpEncodingParameters {
-            ssrc: Some(1),
+            // investigate how to find ssrc
+            ssrc: Some(78),
+            dtx: Some(true),
             ..RtpEncodingParameters::default()
         }
     ];
@@ -146,30 +147,9 @@ async fn main() -> std::io::Result<()> {
 
     let producers = vec![ video_producer.id(), audio_producer.id() ];
 
-    let direct_video_producer = match video_producer {
-        Producer::Direct(direct) => direct,
-        _ => unreachable!()
-    };
-
-    let direct_audio_producer = match audio_producer {
-        Producer::Direct(direct) => direct,
-        _ => unreachable!()
-    };
-
-
-    //#region consumers    
-    /*let transport_options =
-        WebRtcTransportOptions::new(TransportListenIps::new(TransportListenIp {
-            ip: "127.0.0.1".parse().unwrap(),
-            announced_ip: None,
-        }));
-
-    let consumer_transport = router
-        .create_webrtc_transport(transport_options)
-        .await.unwrap();*/
-
     //#region Signalling
     #[derive(Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
     struct TransportOptions {
         id: TransportId,
         dtls_parameters: DtlsParameters,
@@ -187,12 +167,22 @@ async fn main() -> std::io::Result<()> {
         Connect {
             dtls_parameters: DtlsParameters
         },
-        Consume {
+        Consume,
+        /*Consume {
             producer_id: ProducerId
-        },
+        },*/
         Resume {
             id: ConsumerId
         }
+    }
+
+    #[derive(Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Consume {
+        id: ConsumerId,
+        producer_id: ProducerId,
+        kind: MediaKind,
+        rtp_parameters: RtpParameters
     }
 
     #[derive(Serialize, Deserialize)]
@@ -204,20 +194,17 @@ async fn main() -> std::io::Result<()> {
             router_rtp_capabilities: RtpCapabilitiesFinalized
         },
         Connected,
+        #[serde(rename_all = "camelCase")]
         Consuming {
+            consume: Vec<Consume>
+        }
+        /*Consuming {
             id: ConsumerId,
             producer_id: ProducerId,
             kind: MediaKind,
             rtp_parameters: RtpParameters
-        }
+        }*/
     }
-
-    /*let server_init = ClientboundMessage::Init {
-        transport: TransportOptions {
-            id: direct_transport.id(),
-            //dtls_parameters: direct_transport.
-        }
-    };*/
 
     task::spawn(async move {
         let try_socket = TcpListener::bind("0.0.0.0:9050").await;
@@ -240,8 +227,8 @@ async fn main() -> std::io::Result<()> {
 
                 let transport_options =
                     WebRtcTransportOptions::new(TransportListenIps::new(TransportListenIp {
-                        ip: "127.0.0.1".parse().unwrap(),
-                        announced_ip: None,
+                        ip: "192.168.0.10".parse().unwrap(),
+                        announced_ip: None
                     }));
 
                 let consumer_transport = router
@@ -270,7 +257,7 @@ async fn main() -> std::io::Result<()> {
                                 .await.unwrap();
                             },
                             ServerboundMessage::Init { rtp_capabilities } => {
-                                client_rtp_capabilities.replace(rtp_capabilities);
+                                client_rtp_capabilities = Some(rtp_capabilities);
                             },
                             ServerboundMessage::Connect { dtls_parameters } => {
                                 consumer_transport
@@ -284,24 +271,30 @@ async fn main() -> std::io::Result<()> {
                                 ))
                                 .await.unwrap();
                             },
-                            ServerboundMessage::Consume { producer_id } => {
-                                let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
-                                let mut options = ConsumerOptions::new(producer_id, rtp_capabilities.clone());
-                                options.paused = true;
+                            ServerboundMessage::Consume => {//{ producer_id } => {
+                                let mut consume = vec![];
+                                for producer_id in &producers {
+                                    let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
+                                    let mut options = ConsumerOptions::new(*producer_id, rtp_capabilities.clone());
+                                    options.paused = true;
 
-                                let consumer = consumer_transport.consume(options).await.unwrap();
-                                let id = consumer.id();
-                                let kind = consumer.kind();
-                                let rtp_parameters = consumer.rtp_parameters().clone();
+                                    let consumer = consumer_transport.consume(options).await.unwrap();
+                                    let id = consumer.id();
+                                    let kind = consumer.kind();
+                                    let rtp_parameters = consumer.rtp_parameters().clone();
 
-                                consumers.insert(id, consumer);
+                                    consumers.insert(id, consumer);
+                                    consume.push(Consume {
+                                        id,
+                                        producer_id: *producer_id,
+                                        kind,
+                                        rtp_parameters
+                                    });
+                                }
                                 
                                 write.send(Message::Text(
                                     serde_json::to_string(&ClientboundMessage::Consuming {
-                                        id,
-                                        producer_id,
-                                        kind,
-                                        rtp_parameters
+                                        consume
                                     })
                                     .unwrap()
                                 ))
@@ -318,28 +311,35 @@ async fn main() -> std::io::Result<()> {
             });
         }
     });
-    
+
 
 
     //#region UDP
     // Handle incoming RTP packets.
-    let mut buf = [0; 1460];
+    let mut buf = [0; 4096];
     loop {
-        let (_amt, _src) = socket.recv_from(&mut buf)?;
+        let (amt, _src) = socket.recv_from(&mut buf)?;
 
         use rtp::packet::Packet;
         use webrtc_util::marshal::Unmarshal;
 
-        let packet = Packet::unmarshal(&mut &buf[..]).unwrap();
+        let packet = Packet::unmarshal(&mut &buf[..amt]).unwrap();
+        dbg!(&packet.header);
         // Note from Lightspeed: may fail from Windows OBS clients. Can safely ignore failure.
 
         match packet.header.payload_type {
-            96 => direct_video_producer.send(
-                packet.marshal().unwrap()
-            ).await,
-            97 => direct_audio_producer.send(
-                packet.marshal().unwrap()
-            ).await,
+            96 => match &video_producer {
+                Producer::Direct(direct) => direct.send(
+                    packet.marshal().unwrap()
+                ).await,
+                _ => unreachable!()
+            } 
+            97 => match &audio_producer {
+                Producer::Direct(direct) => direct.send(
+                    packet.marshal().unwrap()
+                ).await,
+                _ => unreachable!()
+            }
             _ => Ok(())
         }
         .unwrap();
