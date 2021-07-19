@@ -21,7 +21,7 @@ use serde::{Serialize, Deserialize};
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:65535")?;
+    let socket = UdpSocket::bind("127.0.0.1:65534")?;
 
     // Create a new worker manager
     let manager = WorkerManager::new();

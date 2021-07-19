@@ -1,13 +1,18 @@
 [package]
-name = "hyperspeed"
+name = "ftl-protocol"
 version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ftl-protocol = { path = "crates/ftl" }
 
+# server only
+log = "0.4"
 async-trait = "0.1.50"
-pretty_env_logger = "0.4"
 async-std = { version = "1.8.0", features = ["attributes"] }
+
+# util only
+ring = "0.16.20"
+rand = "0.8.4"
+hex = "0.4.3"
