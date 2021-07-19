@@ -5,14 +5,17 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[features]
+server = [ "log", "async-trait", "async-std", "util" ]
+util = [ "ring", "rand", "hex" ]
 
+[dependencies]
 # server only
-log = "0.4"
-async-trait = "0.1.50"
-async-std = { version = "1.8.0", features = ["attributes"] }
+log = { version = "0.4", optional = true }
+async-trait = { version = "0.1.50", optional = true }
+async-std = { version = "1.8.0", features = ["attributes"], optional = true }
 
 # util only
-ring = "0.16.20"
-rand = "0.8.4"
-hex = "0.4.3"
+ring = { version = "0.16.20", optional = true }
+rand = { version = "0.8.4", optional = true }
+hex = { version = "0.4.3", optional = true }

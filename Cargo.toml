@@ -6,8 +6,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ftl-protocol = { path = "crates/ftl" }
 hyperspeed-broadcast = { path = "crates/broadcast" }
+ftl-protocol = { path = "crates/ftl", features = ["server"] }
 
 once_cell = "1.8.0"
 async-trait = "0.1.50"

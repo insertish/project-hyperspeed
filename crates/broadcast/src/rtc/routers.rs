@@ -44,7 +44,7 @@ impl HyperspeedRouter {
 
     pub async fn launch(&self, addr: String) -> Result<(), io::Error> {
         match &self.source {
-            DataSource::Ftl(_) => {
+            DataSource::Ftl(data) => {
                 let video_producer = self.producers
                     .iter()
                     .find(|v| v.kind() == MediaKind::Video)
@@ -60,6 +60,9 @@ impl HyperspeedRouter {
                         Producer::Direct(direct) => direct,
                         _ => unreachable!()
                     });
+
+                    let video_payload_type = data.video.as_ref().map(|v| v.payload_type).unwrap_or(96);
+                    let audio_payload_type = data.video.as_ref().map(|v| v.payload_type).unwrap_or(97);
                 
                 info!("Created new UDP server on {}", addr);
                 let socket = UdpSocket::bind(addr).await?;
@@ -74,17 +77,16 @@ impl HyperspeedRouter {
                     let packet = Packet::unmarshal(&mut &buf[..amt]).unwrap(); // ! FIXME
                     // Note from Lightspeed: may fail from Windows OBS clients.
                     // Can safely ignore failure.
-            
-                    match packet.header.payload_type {
-                        96 => if let Some(video) = video_producer {
-                            video.send(packet.marshal().unwrap()).await
-                        } else { Ok(()) }
-                        97 => if let Some(audio) = audio_producer {
-                            audio.send(packet.marshal().unwrap()).await
-                        } else { Ok(()) }
-                        _ => Ok(())
+
+                    if video_payload_type == packet.header.payload_type {
+                        if let Some(video) = video_producer {
+                            video.send(packet.marshal().unwrap()).await.unwrap();
+                        }
+                    } else if audio_payload_type == packet.header.payload_type {
+                        if let Some(audio) = audio_producer {
+                            audio.send(packet.marshal().unwrap()).await.unwrap();
+                        }
                     }
-                    .unwrap();
                 }
             }
         }
