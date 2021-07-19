@@ -1,7 +1,7 @@
 use async_std::io;
 use async_std::net::UdpSocket;
 use log::info;
-use mediasoup::producer::Producer;
+use mediasoup::producer::{Producer, ProducerId};
 use mediasoup::router::{Router, RouterOptions};
 use ftl_protocol::protocol::FtlHandshakeFinalised;
 use mediasoup::rtp_parameters::MediaKind;
@@ -66,6 +66,7 @@ impl HyperspeedRouter {
                 let mut buf = vec![0u8; 4096];
                 loop {
                     let (amt, _src) = socket.recv_from(&mut buf).await?;
+                    // ! FIXME: we should validate _src is the same as the address of the FTL peer
             
                     use rtp::packet::Packet;
                     use webrtc_util::marshal::{Marshal, Unmarshal};
@@ -87,5 +88,15 @@ impl HyperspeedRouter {
                 }
             }
         }
+    }
+
+    pub fn clone_router(&self) -> Router {
+        self.router.clone()
+    }
+
+    pub fn get_producer_ids(&self) -> Vec<ProducerId> {
+        self.producers.iter()
+            .map(|v| v.id().clone())
+            .collect()
     }
 }

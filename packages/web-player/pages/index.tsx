@@ -15,7 +15,7 @@ export default function Home() {
 
 		ws.onopen = () => {
 			console.info('Asking to begin Init');
-			ws.send(JSON.stringify({ type: 'Begin' }));
+			ws.send(JSON.stringify({ type: 'Begin', channel_id: prompt('enter channel id') }));
 		}
 
 		let consumerTransport: Transport | undefined;
@@ -95,14 +95,14 @@ export default function Home() {
 	return (
 		<div className={styles.container}>
 			<Head>
-				<title>Project Hyperspeed</title>
+				<title>aaa</title>
 			</Head>
 			
-			<main className={styles.main}>
+			{/*<main className={styles.main}>
 				<h1 className={styles.title}>
 					Project Hyperspeed
 				</h1>
-			</main>
+			</main>*/}
 
 			<video controls muted onLoadedMetadata={e => e.currentTarget.play()} ref={el => {
 				if (el) el.srcObject = src
