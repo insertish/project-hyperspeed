@@ -66,7 +66,6 @@ async fn main() -> std::io::Result<()> {
     audio_rtp_params.encodings = vec![
         RtpEncodingParameters {
             ssrc: Some(77),
-            dtx: Some(true),
             ..RtpEncodingParameters::default()
         }
     ];
@@ -112,9 +111,7 @@ async fn main() -> std::io::Result<()> {
 
     video_rtp_params.encodings = vec![
         RtpEncodingParameters {
-            // investigate how to find ssrc
             ssrc: Some(78),
-            dtx: Some(true),
             ..RtpEncodingParameters::default()
         }
     ];
@@ -324,7 +321,6 @@ async fn main() -> std::io::Result<()> {
         use webrtc_util::marshal::Unmarshal;
 
         let packet = Packet::unmarshal(&mut &buf[..amt]).unwrap();
-        dbg!(&packet.header);
         // Note from Lightspeed: may fail from Windows OBS clients. Can safely ignore failure.
 
         match packet.header.payload_type {
