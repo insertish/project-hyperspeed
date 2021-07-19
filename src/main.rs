@@ -2,6 +2,7 @@ use async_std::{channel, task};
 use async_trait::async_trait;
 use ftl_protocol::protocol::FtlHandshakeFinalised;
 use hyperspeed_broadcast::rtc::routers::{DataSource, HyperspeedRouter};
+use hyperspeed_broadcast::rtc::workers::WorkerPool;
 
 use std::sync::RwLock;
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ static ROUTERS: OnceCell<RwLock<HashMap<String, HyperspeedRouter>>> = OnceCell::
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
+    WorkerPool::init().await;
 
     let routers = RwLock::new(HashMap::<String, HyperspeedRouter>::new());
     ROUTERS.set(routers).ok();
@@ -42,9 +44,14 @@ async fn main() -> std::io::Result<()> {
                 ).await;
 
                 // ! FIXME: questionable code
+                // I mean really, this shouldn't fail unless if we manage to somehow poison
+                // the ROUTERS cell. If we're careful we probably won't need to replace this.
                 let routers = ROUTERS.get().unwrap();
                 let mut routers = routers.write().unwrap();
-                routers.insert(channel_id, router);
+                routers.insert(channel_id, router.clone());
+
+                // Launch UDP socket server
+                router.launch("127.0.0.1:65534".to_string()).await.unwrap();
             });
 
             Ok(port)

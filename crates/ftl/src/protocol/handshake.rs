@@ -32,7 +32,7 @@ pub struct FtlHandshake {
 
 // Finalised versions of handshake.
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KnownVideo {
     pub codec: String,
     pub height: isize,
@@ -41,14 +41,14 @@ pub struct KnownVideo {
     pub ssrc: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KnownAudio {
     pub codec: String,
     pub payload_type: u8,
     pub ssrc: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FtlHandshakeFinalised {
     pub protocol_version: (isize, isize),
     pub vendor: Vendor,

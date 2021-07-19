@@ -62,7 +62,7 @@ pub struct AudioCodec {
 impl AudioCodec {
     pub fn from(codec: &str) -> AudioCodec {
         let mime_type = match codec {
-            "H264" => MimeTypeAudio::Opus,
+            "OPUS" => MimeTypeAudio::Opus,
             _ => unimplemented!()
         };
 

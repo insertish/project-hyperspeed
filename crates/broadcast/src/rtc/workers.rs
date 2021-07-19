@@ -4,12 +4,6 @@ use log::debug;
 
 static WORKER_POOL: OnceCell<WorkerPool> = OnceCell::new();
 
-pub fn get_worker_pool() -> &'static WorkerPool {
-    WORKER_POOL
-        .get()
-        .expect("Mediasoup worker pool not initialized")
-}
-
 // ! Worker pool taken from Vortex source code.
 // ! This is single-threaded, which is enough for now.
 
@@ -20,6 +14,17 @@ pub struct WorkerPool {
 }
 
 impl WorkerPool {
+    pub async fn init() {
+        let worker_pool = WorkerPool::new().await;
+        WORKER_POOL.set(worker_pool).unwrap();
+    }
+
+    pub fn get() -> &'static WorkerPool {
+        WORKER_POOL
+            .get()
+            .expect("Mediasoup worker pool not initialized")
+    }
+
     pub async fn new() -> Self {
         let manager = WorkerManager::new();
         let mut settings = WorkerSettings::default();
