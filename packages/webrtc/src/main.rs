@@ -79,7 +79,7 @@ async fn main() -> std::io::Result<()> {
     options.media_codecs.push(
         RtpCodecCapability::Video {
             mime_type: MimeTypeVideo::H264,
-            preferred_payload_type: Some(96),//None,
+            preferred_payload_type: None,//Some(96),//None,
             clock_rate: NonZeroU32::new(90_000).unwrap(),
             parameters: parameters.clone(),
             rtcp_feedback: vec! [

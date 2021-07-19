@@ -178,8 +178,7 @@ pub trait IngestServer {
             FtlCommand::Dot => {
                 if let Some(channel_id) = &client.channel_id {
                     let handshake = client.handshake.clone().finalise()?;
-
-                    let udp_port = self.allocate_ingest(channel_id, &handshake)
+                    let udp_port = self.allocate_ingest(channel_id, handshake)
                         .await.map_err(|_| FtlError::ExternalError)?;
                     
                     debug!("Client is about to begin stream. Allocated port {}.", udp_port);
@@ -213,5 +212,5 @@ pub trait IngestServer {
     }
 
     async fn get_stream_key(&self, channel_id: &str) -> Result<String, ()>;
-    async fn allocate_ingest(&self, channel_id: &str, handshake: &FtlHandshakeFinalised) -> Result<u16, ()>;
+    async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised) -> Result<u16, ()>;
 }

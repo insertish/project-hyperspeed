@@ -6,3 +6,21 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4"
+futures = "0.3.15"
+once_cell = "1.8.0"
+async-std = { version = "1.8.0", features = ["attributes", "unstable"] }
+async-tungstenite = { version = "0.14.0", features = ["tokio-runtime"] }
+
+# serde
+serde_json = "1.0.64"
+serde = { version = "1.0.126", features = ["derive"] }
+
+# WebRTC
+rtp = "0.2.9"
+bytes = "1.0.1"
+mediasoup = "0.8.2"
+webrtc-util = "0.2.4"
+
+# FTL codecs
+ftl-protocol = { path = "../ftl" }

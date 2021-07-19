@@ -1,6 +1,6 @@
-use rand::distributions::{Alphanumeric, Uniform};
+use rand::distributions::Uniform;
 use rand::{thread_rng, Rng};
-use hex::{decode, encode};
+use hex::encode;
 
 pub fn generate_hmac() -> String {
     let dist = Uniform::new(0x00, 0xFF);
