@@ -38,3 +38,8 @@ serde = { version = "1.0.126", features = ["derive"], optional = true }
 rtp = { version = "0.2.9", optional = true }
 mediasoup = { version = "0.8.2", optional = true }
 webrtc-util = { version = "0.2.4", optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustc-args = ["--cfg", "docsrs"]
+rustdoc-args = ["--cfg", "docsrs"]
