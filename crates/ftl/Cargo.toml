@@ -4,7 +4,7 @@ description = "Common data structures for working with the Faster Than Light pro
 homepage = "https://project-hyperspeed.vercel.app"
 documentation = "https://project-hyperspeed.vercel.app/components/ftl"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.1"
+version = "0.0.2"
 license = "MIT"
 edition = "2018"
 
@@ -24,3 +24,8 @@ async-std = { version = "1.8.0", features = ["attributes"], optional = true }
 ring = { version = "0.16.20", optional = true }
 rand = { version = "0.8.4", optional = true }
 hex = { version = "0.4.3", optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustc-args = ["--cfg", "docsrs"]
+rustdoc-args = ["--cfg", "docsrs"]

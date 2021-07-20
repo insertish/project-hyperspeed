@@ -1,4 +1,4 @@
-use super::{FtlCommand, FtlError};
+use super::FtlError;
 
 #[derive(Default, Debug, Clone)]
 pub struct Vendor {

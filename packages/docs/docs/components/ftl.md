@@ -4,9 +4,9 @@ sidebar_position: 1
 
 # FTL Protocol
 
-- Version: `0.0.1`
+- Version: `0.0.2`
 - License: **MIT**
-- Crates.io: [crates.io/ftl-protocol](https://crates.io/ftl-protocol)
+- Crates.io: [crates.io/crates/ftl-protocol](https://crates.io/crates/ftl-protocol)
 - Rust Documentation: [docs.rs/ftl-protocol](https://docs.rs/ftl-protocol)
 
 [ftl-protocol](https://gitlab.insrt.uk/insert/project-hyperspeed/-/tree/master/crates/ftl) provides common data structures for working with FTL as well as an optional FTL ingest control server.

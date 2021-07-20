@@ -17,10 +17,11 @@ signaling = [ "rtc", "futures", "async-std", "async-trait", "async-tungstenite",
 default = [ "rtc", "ingest", "signaling" ]
 
 [dependencies]
-log = "0.4"
-ftl-protocol = { path = "../ftl" }
+# ftl-protocol = { path = "../ftl" }
+ftl-protocol = "0.0.1"
 
 # misc
+log = "0.4"
 futures = { version = "0.3.15", optional = true }
 once_cell = { version = "1.8.0", optional = true }
 
