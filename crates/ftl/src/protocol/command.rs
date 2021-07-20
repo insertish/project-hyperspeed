@@ -24,7 +24,6 @@ impl FromStr for FtlCommand {
     type Err = FtlError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        dbg!(s);
         match s {
             "HMAC" => Ok(FtlCommand::HMAC),
             "." => Ok(FtlCommand::Dot),

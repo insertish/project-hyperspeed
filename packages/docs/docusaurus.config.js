@@ -5,14 +5,14 @@ const remarkFootnotes = require('remark-footnotes');
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'Project Hyperspeed',
-  tagline: 'Rust FTL streaming server.',
-  url: 'https://your-docusaurus-test-site.com',
+  tagline: 'Rust FTL + WebRTC live streaming software. Faster Than Light protocol documentation.',
+  url: 'https://project-hyperspeed.vercel.app',
   baseUrl: '/',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenMarkdownLinks: 'throw',
   favicon: 'img/favicon.ico',
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'insertish',
+  projectName: 'project-hyperspeed',
   themeConfig: {
     navbar: {
       title: 'Project Hyperspeed',
@@ -25,11 +25,17 @@ module.exports = {
           type: 'doc',
           docId: 'intro',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Introduction',
         },
         {
-          href: 'https://github.com/facebook/docusaurus',
-          label: 'GitHub',
+          type: 'doc',
+          docId: 'ftl/overview',
+          position: 'left',
+          label: 'FTL',
+        },
+        {
+          href: 'https://gitlab.insrt.uk/insert/project-hyperspeed',
+          label: 'GitLab',
           position: 'right',
         },
       ],
@@ -41,8 +47,12 @@ module.exports = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
-              to: '/docs/intro',
+              label: 'Overview',
+              to: '/intro',
+            },
+            {
+              label: 'Faster Than Light',
+              to: '/ftl/overview',
             },
           ],
         },
@@ -50,16 +60,12 @@ module.exports = {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Revolt',
+              href: 'https://app.revolt.chat/invite/fqqT4MWM',
             },
             {
               label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              href: 'https://discord.gg/XJPXxdYUxn',
             },
           ],
         },
@@ -67,17 +73,17 @@ module.exports = {
           title: 'More',
           items: [
             {
-              label: 'Blog',
-              to: '/blog',
+              label: 'GitLab',
+              href: 'https://gitlab.insrt.uk/insert/project-hyperspeed',
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/insertish/project-hyperspeed',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Made by <a href="https://insrt.uk">Paul Makles</a>. Built with Docusaurus.`,
     },
     prism: {
       theme: lightCodeTheme,
@@ -93,7 +99,7 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/',
+            'https://gitlab.insrt.uk/insert/project-hyperspeed/-/edit/master/packages/docs/',
           remarkPlugins: [
             [remarkFootnotes, { inlineNotes: true }]
           ],
