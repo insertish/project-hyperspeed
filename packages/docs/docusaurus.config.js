@@ -48,7 +48,7 @@ module.exports = {
           items: [
             {
               label: 'Overview',
-              to: '/intro',
+              to: '/',
             },
             {
               label: 'Faster Than Light',
