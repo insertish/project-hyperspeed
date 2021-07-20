@@ -104,7 +104,7 @@ Ok | 200 | Sent when `Connect` has succeeded. | `200\n`
 Connect | 200 | Tells the client where to send RTP data. | `200. Use UDP port 65535\n` [^2]
 Ping | 201 | Keeps the client's connection alive. | `201\n`
 
-#### Error Responses
+### Error Responses
 
 There are a number of documented error responses, [found here](https://github.com/microsoft/ftl-sdk/blob/master/libftl/ftl_private.h#L365), which are listed below. Each of the following (to the best of my knowledge) can be sent as a single status code on a new line, for example, `400\n`.
 

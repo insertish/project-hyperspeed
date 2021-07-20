@@ -1,6 +1,11 @@
 [package]
 name = "ftl-protocol"
-version = "0.1.0"
+description = "Common data structures for working with the Faster Than Light protocol as well as an optional FTL ingest control server."
+homepage = "https://project-hyperspeed.vercel.app"
+documentation = "https://project-hyperspeed.vercel.app/components/ftl"
+repository = "https://github.com/insertish/project-hyperspeed"
+version = "0.0.1"
+license = "MIT"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -1,4 +1,5 @@
 ---
+slug: /ftl
 sidebar_position: 1
 ---
 

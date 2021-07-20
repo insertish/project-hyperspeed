@@ -1,9 +1,9 @@
-use async_std::{channel, task};
+use async_std::task;
 use async_trait::async_trait;
 use ftl_protocol::protocol::FtlHandshakeFinalised;
-use hyperspeed_broadcast::rtc::routers::{DataSource, HyperspeedRouter};
 use hyperspeed_broadcast::rtc::workers::WorkerPool;
 use hyperspeed_broadcast::signaling::websocket::StreamInformation;
+use hyperspeed_broadcast::rtc::routers::{DataSource, HyperspeedRouter};
 
 use std::sync::RwLock;
 use std::collections::HashMap;
@@ -54,8 +54,8 @@ async fn main() -> std::io::Result<()> {
                 routers.insert(channel_id, router.clone());
                 drop(routers);
 
-                // Launch UDP socket server
-                router.launch(format!("127.0.0.1:{}", port)).await.unwrap();
+                // Launch UDP ingest server
+                router.launch_ingest(format!("127.0.0.1:{}", port)).await.unwrap();
             });
 
             Ok(port)

@@ -1,29 +1,39 @@
 [package]
 name = "hyperspeed-broadcast"
-version = "0.1.0"
+description = "Media ingest server, also provides WebSocket signaling server."
+homepage = "https://project-hyperspeed.vercel.app"
+documentation = "https://project-hyperspeed.vercel.app/components/broadcast"
+repository = "https://github.com/insertish/project-hyperspeed"
+version = "0.0.1"
+license = "AGPL-3.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+rtc = [ "once_cell", "mediasoup" ]
+ingest = [ "rtc", "async-trait", "async-std", "rtp", "webrtc-util" ]
+signaling = [ "rtc", "futures", "async-std", "async-trait", "async-tungstenite", "serde", "serde_json" ]
+default = [ "rtc", "ingest", "signaling" ]
+
 [dependencies]
 log = "0.4"
-futures = "0.3.15"
-once_cell = "1.8.0"
+ftl-protocol = { path = "../ftl" }
+
+# misc
+futures = { version = "0.3.15", optional = true }
+once_cell = { version = "1.8.0", optional = true }
 
 # async std
-async-trait = "0.1.50"
-async-std = { version = "1.8.0", features = ["attributes", "unstable"] }
-async-tungstenite = { version = "0.14.0", features = ["tokio-runtime"] }
+async-trait = { version = "0.1.50", optional = true }
+async-std = { version = "1.8.0", features = ["attributes", "unstable"], optional = true }
+async-tungstenite = { version = "0.14.0", features = ["async-std-runtime"], optional = true }
 
 # serde
-serde_json = "1.0.64"
-serde = { version = "1.0.126", features = ["derive"] }
+serde_json = { version = "1.0.64", optional = true }
+serde = { version = "1.0.126", features = ["derive"], optional = true }
 
 # WebRTC
-rtp = "0.2.9"
-bytes = "1.0.1"
-mediasoup = "0.8.2"
-webrtc-util = "0.2.4"
-
-# FTL protocol
-ftl-protocol = { path = "../ftl" }
+rtp = { version = "0.2.9", optional = true }
+mediasoup = { version = "0.8.2", optional = true }
+webrtc-util = { version = "0.2.4", optional = true }

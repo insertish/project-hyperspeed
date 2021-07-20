@@ -18,3 +18,14 @@ impl ToString for FtlResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::protocol::FtlResponse;
+
+    #[test]
+    fn should_success() {
+        let resp = FtlResponse::Success;
+        assert_eq!(resp.to_string(), "200\n".to_string());
+    }
+}

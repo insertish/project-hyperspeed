@@ -1,4 +1,4 @@
-use super::FtlError;
+use super::{FtlCommand, FtlError};
 
 #[derive(Default, Debug, Clone)]
 pub struct Vendor {
@@ -30,8 +30,64 @@ pub struct FtlHandshake {
     pub audio: Option<Audio>,
 }
 
-// Finalised versions of handshake.
+impl FtlHandshake {
+    /// Given a FTL attribute, insert it into the Handshake structure.
+    pub fn insert(&mut self, key: String, value: String) -> Result<(), FtlError> {
+        // ! FIXME: causing panics here, try not doing that
+        match key.as_ref() {
+            "ProtocolVersion" => {
+                let mut parts = value.split('.');
+                self.protocol_version = Some((
+                    parts.next().unwrap().parse().unwrap(),
+                    parts.next().unwrap().parse().unwrap()
+                ));
+            }
+            "VendorName" => self.vendor.name = Some(value),
+            "VendorVersion" => self.vendor.version = Some(value),
+            "Video" |
+            "Audio" => match value.as_ref() {
+                "true" => {
+                    if key == "Video" {
+                        self.video = Some(Video::default());
+                    } else {
+                        self.audio = Some(Audio::default());
+                    }
+                },
+                "false" => {},
+                _ => panic!("Failed to deserialise boolean.")
+            }
+            "VideoCodec" |
+            "VideoHeight" |
+            "VideoWidth" |
+            "VideoPayloadType" |
+            "VideoIngestSSRC" => if let Some(mut video) = self.video.as_mut() {
+                match key.as_ref() {
+                    "VideoCodec" => video.codec = Some(value),
+                    "VideoHeight" => video.height = Some(value.parse().unwrap()),
+                    "VideoWidth" => video.width = Some(value.parse().unwrap()),
+                    "VideoPayloadType" => video.payload_type = Some(value.parse().unwrap()),
+                    "VideoIngestSSRC" => video.ssrc = Some(value.parse().unwrap()),
+                    _ => unreachable!()
+                }
+            }
+            "AudioCodec" |
+            "AudioPayloadType" |
+            "AudioIngestSSRC" => if let Some(mut audio) = self.audio.as_mut() {
+                match key.as_ref() {
+                    "AudioCodec" => audio.codec = Some(value),
+                    "AudioPayloadType" => audio.payload_type = Some(value.parse().unwrap()),
+                    "AudioIngestSSRC" => audio.ssrc = Some(value.parse().unwrap()),
+                    _ => unreachable!()
+                }
+            }
+            _ => {}
+        }
 
+        Ok(())
+    }
+}
+
+//#region Finalised Handshake.
 #[derive(Debug, Clone)]
 pub struct KnownVideo {
     pub codec: String,
@@ -84,5 +140,38 @@ impl FtlHandshake {
                 }
             } else { None }
         })
+    }
+}
+//#endregion
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn full_test() {
+        use crate::protocol::{FtlCommand, FtlHandshake};
+
+        // Start constructing handshake somewhere in your code.
+        let mut handshake = FtlHandshake::default();
+
+        // Example incoming command.
+        let command = FtlCommand::Attribute {
+            key: "ProtocolVersion".to_string(),
+            value: "0.9".to_string()
+        };
+
+        // Match attribute and insert it into handshake.
+        if let FtlCommand::Attribute { key, value } = command {
+            handshake.insert(key, value).unwrap();
+            // You should handle any errors here,
+            // but we know this isn't going to fail.
+        }
+
+        // Once we have the minimum amount of information,
+        // (see the note under FTL handshakes on the protocol page)
+        // we can finalise the handshake, this verifies all data is
+        // correct, such as the protocol version and ensuring if A/V
+        // streams are enabled that they have all fields present.
+        let handshake = handshake.finalise().unwrap();
+        assert_eq!(handshake.protocol_version.1, 9);
     }
 }

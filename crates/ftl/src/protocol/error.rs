@@ -11,6 +11,7 @@ pub enum FtlError {
     InvalidProtocolVersion,
     UnsupportedProtocolVersion,
     MissingCodecInformation,
+    UnimplementedCommand,
     
     Disconnect,
 }

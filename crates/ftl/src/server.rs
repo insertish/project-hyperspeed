@@ -123,58 +123,7 @@ pub trait IngestServer {
 
                 Ok(())
             }
-            FtlCommand::Attribute { key, value } => {
-                match key.as_ref() {
-                    "ProtocolVersion" => {
-                        let mut parts = value.split('.');
-                        client.handshake.protocol_version = Some((
-                            parts.next().unwrap().parse().unwrap(),
-                            parts.next().unwrap().parse().unwrap()
-                        ));
-                    }
-                    "VendorName" => client.handshake.vendor.name = Some(value),
-                    "VendorVersion" => client.handshake.vendor.version = Some(value),
-                    "Video" |
-                    "Audio" => match value.as_ref() {
-                        "true" => {
-                            if key == "Video" {
-                                client.handshake.video = Some(Video::default());
-                            } else {
-                                client.handshake.audio = Some(Audio::default());
-                            }
-                        },
-                        "false" => {},
-                        _ => panic!("Failed to deserialise boolean.")
-                    }
-                    "VideoCodec" |
-                    "VideoHeight" |
-                    "VideoWidth" |
-                    "VideoPayloadType" |
-                    "VideoIngestSSRC" => if let Some(mut video) = client.handshake.video.as_mut() {
-                        match key.as_ref() {
-                            "VideoCodec" => video.codec = Some(value),
-                            "VideoHeight" => video.height = Some(value.parse().unwrap()),
-                            "VideoWidth" => video.width = Some(value.parse().unwrap()),
-                            "VideoPayloadType" => video.payload_type = Some(value.parse().unwrap()),
-                            "VideoIngestSSRC" => video.ssrc = Some(value.parse().unwrap()),
-                            _ => unreachable!()
-                        }
-                    }
-                    "AudioCodec" |
-                    "AudioPayloadType" |
-                    "AudioIngestSSRC" => if let Some(mut audio) = client.handshake.audio.as_mut() {
-                        match key.as_ref() {
-                            "AudioCodec" => audio.codec = Some(value),
-                            "AudioPayloadType" => audio.payload_type = Some(value.parse().unwrap()),
-                            "AudioIngestSSRC" => audio.ssrc = Some(value.parse().unwrap()),
-                            _ => unreachable!()
-                        }
-                    }
-                    _ => {}
-                }
-
-                Ok(())
-            }
+            FtlCommand::Attribute { key, value } => client.handshake.insert(key, value),
             FtlCommand::Dot => {
                 if let Some(channel_id) = &client.channel_id {
                     let handshake = client.handshake.clone().finalise()?;
