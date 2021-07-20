@@ -1,5 +1,6 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const remarkFootnotes = require('remark-footnotes');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
@@ -93,6 +94,9 @@ module.exports = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/facebook/docusaurus/edit/master/website/',
+          remarkPlugins: [
+            [remarkFootnotes, { inlineNotes: true }]
+          ],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
