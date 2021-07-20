@@ -52,7 +52,7 @@ module.exports = {
             },
             {
               label: 'Faster Than Light',
-              to: '/ftl/overview',
+              to: '/ftl',
             },
           ],
         },
