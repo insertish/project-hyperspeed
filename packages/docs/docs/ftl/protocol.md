@@ -55,13 +55,13 @@ The formats below are given as [Rust format strings](https://doc.rust-lang.org/s
  Command | Description | Format | First Parameter | Second Parameter 
 :-------:|:------------|:------:|:---------------:|:----------------:
  HMAC | Request a HMAC payload from the server. | `HMAC`
- Connect | Authenticate with the server providing the channel ID and **hex encoded** stream key hash [^2] in that order. | `CONNECT {} {}` | [String][String] | [String][String]
- Attribute | Provide an attribute for the [FTL handshake](#ftl-handshake). | `{}: {}` [^1] | [String][String] | [String][String]
+ Connect | Authenticate with the server providing the channel ID and **hex encoded hashed HMAC payload** (prefix: $). | `CONNECT {} ${}` | Channel ID<br/> [String][String] | Hashed data<br/> [String][String]
+ Attribute | Provide an attribute for the [FTL handshake](#ftl-handshake). | `{}: {}` [^1] | Key<br/> [String][String] | Value<br/> [String][String]
  Dot | Complete the [FTL handshake](#ftl-handshake) and tell the server we want to start sending media. | `.`
- Ping | Let the server know we're still sending data and ensure the other end is alive too. This includes the channel ID as a parameter, although servers may choose to omit it. | `PING {}` | [String][String]
+ Ping | Let the server know we're still sending data and ensure the other end is alive too. This includes the channel ID as a parameter, although servers may choose to omit it. | `PING {}` | Channel ID<br/> [String][String]
  Disconnect | Tell the server we are finished. | `DISCONNECT`
 
-#### FTL Handshake
+### FTL Handshake
 
 There are a number of attributes sent over by the client which are used to determine capabilities and construct A/V streams. These are sent by the client after successful authentication.
 
@@ -99,9 +99,9 @@ Responses are done in the form of a status code and body in one line. For exampl
 
  Event | Code | Description | Example
 :------|:----:|:------------|:--------
-HMAC | 200 | This response contains the server's HMAC payload. | `200 abcdef1234\n` [^4]
+HMAC | 200 | This response contains the server's HMAC payload. This should be a 256-character hex-encoded string, you can encode 128-bits of random data and use it here. | `200 abcdef1234\n` [^3]
 Ok | 200 | Sent when `Connect` has succeeded. | `200\n`
-Connect | 200 | Tells the client where to send RTP data. | `200. Use UDP port 65535\n` [^3]
+Connect | 200 | Tells the client where to send RTP data. | `200. Use UDP port 65535\n` [^2]
 Ping | 201 | Keeps the client's connection alive. | `201\n`
 
 #### Error Responses
@@ -131,7 +131,7 @@ Internal Socket Timeout | 903 | The server has not received any data and has dis
 [isize]: https://doc.rust-lang.org/std/string/struct.String.html
 [bool]: https://doc.rust-lang.org/std/primitive.bool.html
 
-## Media Protocol (RTP ingest)
+## Media Protocol ("Styx")
 
 Once the handshake with the control server is complete, the client sends RTP packets (containing A/V streams) over UDP to the given port. The protocol for the media connection is similar to the RTP protocol but FTL ignores certain limitations.
 
@@ -167,7 +167,6 @@ While the payload type field is constant in the specification, a client still ha
 
 :::
 
-[^2]: The stream key hash appears to be prefixed with `$`, this should be omitted when decoding or you may hit an error.
 [^1]: Notice the space separation between the colon and value, you should trim both key and value when parsing this data.
-[^4]: See https://github.com/microsoft/ftl-sdk/blob/master/libftl/ftl_helpers.c#L112 for details on how this is parsed.
-[^3]: The client (microsoft/ftl-sdk) expects this exact format, see https://github.com/microsoft/ftl-sdk/blob/master/libftl/ftl_helpers.c#L48.
+[^3]: See https://github.com/microsoft/ftl-sdk/blob/master/libftl/ftl_helpers.c#L112 for details on how this is parsed.
+[^2]: The client (microsoft/ftl-sdk) expects this exact format, see https://github.com/microsoft/ftl-sdk/blob/master/libftl/ftl_helpers.c#L48.

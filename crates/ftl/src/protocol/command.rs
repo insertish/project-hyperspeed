@@ -7,7 +7,7 @@ pub enum FtlCommand {
     HMAC,
     Connect {
         channel_id: String,
-        stream_key: String,
+        hashed_hmac_payload: String,
     },
     Dot,
     Attribute {
@@ -24,6 +24,7 @@ impl FromStr for FtlCommand {
     type Err = FtlError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        dbg!(s);
         match s {
             "HMAC" => Ok(FtlCommand::HMAC),
             "." => Ok(FtlCommand::Dot),
@@ -41,7 +42,7 @@ impl FromStr for FtlCommand {
                             .next()
                             .ok_or_else(|| FtlError::MissingPart)?
                             .to_string(),
-                        stream_key: parts
+                        hashed_hmac_payload: parts
                             .next()
                             .ok_or_else(|| FtlError::MissingPart)?
                             .to_string(),

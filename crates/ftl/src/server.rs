@@ -92,13 +92,13 @@ pub trait IngestServer {
     
                 Ok(())
             }
-            FtlCommand::Connect { channel_id, stream_key } => {
+            FtlCommand::Connect { channel_id, hashed_hmac_payload } => {
                 debug!("Client is connecting, attempting to stream to {}.", &channel_id);
                 let known_key = self.get_stream_key(&channel_id)
                     .await.map_err(|_| FtlError::ExternalError)?;
     
                 // * Key starts with $, omit and decode.
-                let client_hash = hex::decode(stream_key[1..].to_string())
+                let client_hash = hex::decode(hashed_hmac_payload[1..].to_string())
                     .map_err(|_| FtlError::DecodeError)?;
                 
                 let key = ring::hmac::Key::new(ring::hmac::HMAC_SHA512, &known_key.as_bytes());
