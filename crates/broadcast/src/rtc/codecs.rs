@@ -19,13 +19,15 @@ impl VideoCodec {
             _ => unimplemented!()
         };
 
-        let parameters = match mime_type {
+        let mut parameters = match mime_type {
             MimeTypeVideo::H264 => RtpCodecParametersParameters::from([
-                ("packetization-mode", 0_u32.into()),
-                ("level-asymmetry-allowed", 0_u32.into())
+                ("packetization-mode", 1_u32.into()),
+                ("level-asymmetry-allowed", 1_u32.into())
             ]),
             _ => unreachable!()
         };
+
+        parameters.insert("profile-level-id", "42e01f");
 
         let clock_rate = match mime_type {
             MimeTypeVideo::H264 => 90_000,

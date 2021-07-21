@@ -55,7 +55,7 @@ async fn main() -> std::io::Result<()> {
                 drop(routers);
 
                 // Launch UDP ingest server
-                router.launch_ingest(format!("127.0.0.1:{}", port)).await.unwrap();
+                router.launch_ingest(format!("0.0.0.0:{}", port)).await.unwrap();
             });
 
             Ok(port)
@@ -82,8 +82,8 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    task::spawn(MySignalingServer {}.launch("127.0.0.1:9050".to_string()));
-    MyIngestServer {}.launch("127.0.0.1:8084".to_string()).await?;
+    task::spawn(MySignalingServer {}.launch("0.0.0.0:9050".to_string()));
+    MyIngestServer {}.launch("0.0.0.0:8084".to_string()).await?;
 
     Ok(())
 }

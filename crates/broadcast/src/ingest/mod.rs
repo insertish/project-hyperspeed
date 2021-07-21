@@ -26,8 +26,8 @@ impl HyperspeedRouter {
                         _ => unreachable!()
                     });
 
-                    let video_payload_type = data.video.as_ref().map(|v| v.payload_type).unwrap_or(96);
-                    let audio_payload_type = data.video.as_ref().map(|v| v.payload_type).unwrap_or(97);
+                let video_payload_type = data.video.as_ref().map(|v| v.payload_type).unwrap_or(96);
+                let audio_payload_type = data.audio.as_ref().map(|v| v.payload_type).unwrap_or(97);
                 
                 info!("Created new UDP server on {}", addr);
                 let socket = UdpSocket::bind(addr).await?;
@@ -39,17 +39,18 @@ impl HyperspeedRouter {
                     use rtp::packet::Packet;
                     use webrtc_util::marshal::{Marshal, Unmarshal};
             
-                    let packet = Packet::unmarshal(&mut &buf[..amt]).unwrap(); // ! FIXME
-                    // Note from Lightspeed: may fail from Windows OBS clients.
-                    // Can safely ignore failure.
+                    if let Ok(packet) = Packet::unmarshal(&mut &buf[..amt]) {
+                        // Note from Lightspeed: may fail from Windows OBS clients.
+                        // Can safely ignore failure.
 
-                    if video_payload_type == packet.header.payload_type {
-                        if let Some(video) = video_producer {
-                            video.send(packet.marshal().unwrap()).await.unwrap();
-                        }
-                    } else if audio_payload_type == packet.header.payload_type {
-                        if let Some(audio) = audio_producer {
-                            audio.send(packet.marshal().unwrap()).await.unwrap();
+                        if video_payload_type == packet.header.payload_type {
+                            if let Some(video) = video_producer {
+                                video.send(packet.marshal().unwrap()).await.unwrap();
+                            }
+                        } else if audio_payload_type == packet.header.payload_type {
+                            if let Some(audio) = audio_producer {
+                                audio.send(packet.marshal().unwrap()).await.unwrap();
+                            }
                         }
                     }
                 }

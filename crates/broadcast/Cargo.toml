@@ -1,8 +1,8 @@
 [package]
 name = "hyperspeed-broadcast"
 description = "Media ingest server, also provides WebSocket signaling server."
-homepage = "https://project-hyperspeed.vercel.app"
-documentation = "https://project-hyperspeed.vercel.app/components/broadcast"
+homepage = "https://hyperspeed.cli.rs"
+documentation = "https://hyperspeed.cli.rs/components/broadcast"
 repository = "https://github.com/insertish/project-hyperspeed"
 version = "0.0.1"
 license = "AGPL-3.0"

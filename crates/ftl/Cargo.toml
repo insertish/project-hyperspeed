@@ -1,8 +1,8 @@
 [package]
 name = "ftl-protocol"
 description = "Common data structures for working with the Faster Than Light protocol as well as an optional FTL ingest control server."
-homepage = "https://project-hyperspeed.vercel.app"
-documentation = "https://project-hyperspeed.vercel.app/components/ftl"
+homepage = "https://hyperspeed.cli.rs"
+documentation = "https://hyperspeed.cli.rs/components/ftl"
 repository = "https://github.com/insertish/project-hyperspeed"
 version = "0.0.2"
 license = "MIT"

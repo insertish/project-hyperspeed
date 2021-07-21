@@ -1,0 +1,20 @@
+{
+  "name": "hyperspeed.js",
+  "version": "0.0.1",
+  "description": "Library for connecting to Hyperspeed streams.",
+  "main": "dist/index.js",
+  "homepage": "https://hyperspeed.cli.rs",
+  "repository": "https://gitlab.insrt.uk/insert/project-hyperspeed",
+  "author": "Paul Makles <insrt.uk>",
+  "license": "MIT",
+  "devDependencies": {
+    "typed-emitter": "^1.3.1",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "mediasoup-client": "^3.6.36"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}

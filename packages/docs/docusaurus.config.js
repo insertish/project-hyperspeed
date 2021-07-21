@@ -1,12 +1,10 @@
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const remarkFootnotes = require('remark-footnotes');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'Project Hyperspeed',
   tagline: 'Rust FTL + WebRTC live streaming software. Faster Than Light protocol documentation.',
-  url: 'https://project-hyperspeed.vercel.app',
+  url: 'https://hyperspeed.cli.rs',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
@@ -84,12 +82,7 @@ module.exports = {
         },
       ],
       copyright: `Made by <a href="https://insrt.uk">Paul Makles</a>. Built with Docusaurus.`,
-    },
-    prism: {
-      theme: lightCodeTheme,
-      darkTheme: darkCodeTheme,
-      additionalLanguages: ["rust"]
-    },
+    }
   },
   presets: [
     [
@@ -111,4 +104,7 @@ module.exports = {
       },
     ],
   ],
+  scripts: [
+    { src: '/inject.js' }
+  ]
 };

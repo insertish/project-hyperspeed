@@ -425,10 +425,6 @@ name = "ftl-protocol"
 version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "437cf19f5e667b686c228a70ac33ae80d25bb896c0e10a8f6994df8c2ce80407"
-
-[[package]]
-name = "ftl-protocol"
-version = "0.0.2"
 dependencies = [
  "async-std",
  "async-trait",
@@ -649,7 +645,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "async-trait",
- "ftl-protocol 0.0.2",
+ "ftl-protocol",
  "hyperspeed-broadcast",
  "once_cell",
  "pretty_env_logger",
@@ -662,7 +658,7 @@ dependencies = [
  "async-std",
  "async-trait",
  "async-tungstenite",
- "ftl-protocol 0.0.1",
+ "ftl-protocol",
  "futures",
  "log",
  "mediasoup",

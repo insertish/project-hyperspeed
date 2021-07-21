@@ -4,6 +4,6 @@
     </a>
 </p>
 
-## [Documentation](https://project-hyperspeed.vercel.app)
+## [Documentation](https://hyperspeed.cli.rs)
 
-## [FTL Protocol](https://project-hyperspeed.vercel.app/ftl)
+## [FTL Protocol](https://hyperspeed.cli.rs/ftl)

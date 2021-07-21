@@ -61,8 +61,8 @@ pub trait SignalingServer {
                 let StreamInformation { router, producers } = stream_info.unwrap();
                 let transport_options =
                     WebRtcTransportOptions::new(TransportListenIps::new(TransportListenIp {
-                        ip: "192.168.0.10".parse().unwrap(),
-                        announced_ip: None
+                        ip: "0.0.0.0".parse().unwrap(),
+                        announced_ip: Some("192.168.0.10".parse().unwrap()),
                     }));
 
                 let consumer_transport = router

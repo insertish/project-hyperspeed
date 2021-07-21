@@ -24,7 +24,7 @@ FTL clients expect it to be present on this port. In fact, there is no way to sp
 
 Communication is done through a text protocol where each line (bi-directionally) represents a command or response. This is similar in nature to the SMTP protocol, for example:
 
-```
+```yaml
 Client: CONNECT 123 abcdef\n
      C: ProtocolVersion: 0.9\n
      C: VendorName: My Streaming Software\n

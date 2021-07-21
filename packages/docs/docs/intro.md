@@ -11,6 +11,7 @@ Project Hyperspeed is a modular Rust FTL + WebRTC live streaming solution.
 
 - [FTL Protocol](/components/ftl): common data structures for working with FTL as well as an optional FTL ingest control server.
 - [Broadcast](/components/broadcast): media ingest server, also provides WebSocket signaling server.
+- [hyperspeed.js](/components/javascript-lib): Javascript library for connecting to Hyperspeed streams.
 
 ## Faster Than Light
 
