@@ -594,7 +594,7 @@ checksum = "f3a87b616e37e93c22fb19bcd386f02f3af5ea98a25670ad0fce773de23c5e68"
 
 [[package]]
 name = "hyperspeed-broadcast"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "async-std",
  "async-trait",

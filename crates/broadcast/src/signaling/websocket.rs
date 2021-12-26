@@ -18,7 +18,7 @@ pub struct StreamInformation {
 
 #[async_trait]
 pub trait SignalingServer {
-    async fn launch(&'static self, addr: String) {
+    async fn launch(&'static self, addr: &'static str, announced_ip: &'static str) {
         let try_socket = TcpListener::bind(addr).await;
         let listener = try_socket.expect("Failed to bind");
 
@@ -62,7 +62,7 @@ pub trait SignalingServer {
                 let transport_options =
                     WebRtcTransportOptions::new(TransportListenIps::new(TransportListenIp {
                         ip: "0.0.0.0".parse().unwrap(),
-                        announced_ip: Some("192.168.0.10".parse().unwrap()),
+                        announced_ip: Some(announced_ip.parse().unwrap()),
                     }));
 
                 let consumer_transport = router
