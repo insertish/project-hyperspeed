@@ -1,6 +1,6 @@
 {
   "name": "hyperspeed.js",
-  "version": "0.0.2",
+  "version": "0.0.2-patch.0",
   "description": "Library for connecting to Hyperspeed streams.",
   "main": "dist/index.js",
   "homepage": "https://hyperspeed.cli.rs",
@@ -16,5 +16,10 @@
   },
   "scripts": {
     "build": "tsc"
-  }
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README"
+  ]
 }
