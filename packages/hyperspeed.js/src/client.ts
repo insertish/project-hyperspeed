@@ -12,8 +12,10 @@ interface ClientEvents {
 
 interface Options {
     signalingServer: string;
+
     debug?: boolean;
     manageStream?: boolean;
+    autoReconnect?: boolean;
 }
 
 export class Client extends (EventEmitter as unknown as new () => TypedEmitter<ClientEvents>) {
@@ -35,6 +37,12 @@ export class Client extends (EventEmitter as unknown as new () => TypedEmitter<C
         };
     }
 
+    reset() {
+        delete this.ws;
+        delete this.consumerTransport;
+        delete this.receiveMediaStream;
+    }
+
     send(data: ServerboundMessage) {
         if (!this.ws) throw "WebSocket does not exist.";
         this.ws.send(JSON.stringify(data));
@@ -48,6 +56,14 @@ export class Client extends (EventEmitter as unknown as new () => TypedEmitter<C
             if (this.options.debug) console.info('Asking to begin Init');
             this.send({ type: 'Begin', channel_id });
         };
+
+        if (this.options.autoReconnect) {
+            this.ws.onclose = () => {
+                if (this.options.debug) console.warn('Disconnected, attempting to reconnect...');
+                this.reset();
+                this.watch(channel_id);
+            };
+        }
 
 		this.ws.onmessage = async e => {
 			if (typeof e.data === 'string') {
