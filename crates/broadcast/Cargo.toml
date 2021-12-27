@@ -4,7 +4,7 @@ description = "FTL media ingest server and WebSocket signaling server."
 homepage = "https://hyperspeed.cli.rs"
 documentation = "https://hyperspeed.cli.rs/components/broadcast"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.3"
+version = "0.0.4"
 license = "AGPL-3.0"
 edition = "2018"
 
@@ -18,7 +18,7 @@ default = [ "rtc", "ingest", "signaling" ]
 
 [dependencies]
 # ftl-protocol = { path = "../ftl" }
-ftl-protocol = "0.0.2"
+ftl-protocol = "0.0.3"
 
 # misc
 log = "0.4"

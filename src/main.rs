@@ -56,7 +56,13 @@ async fn main() -> std::io::Result<()> {
                 drop(routers);
 
                 // Launch UDP ingest server
-                router.launch_ingest(format!("0.0.0.0:{}", port)).await.unwrap();
+                router.launch_ingest(format!("0.0.0.0:{}", port), should_stop).await.ok();
+                
+                // and drop it
+                let routers = ROUTERS.get().unwrap();
+                let mut routers = routers.write().unwrap();
+                routers.remove(&channel_id);
+                drop(routers);
             });
 
             Ok(port)
