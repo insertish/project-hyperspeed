@@ -3,7 +3,6 @@ import { Transport } from "mediasoup-client/lib/Transport";
 import { ClientboundMessage, ServerboundMessage } from "./messages";
 
 import EventEmitter from 'events';
-import TypedEmitter from 'typed-emitter';
 
 interface ClientEvents {
     trackCreated: (track: MediaStreamTrack) => void,
@@ -18,7 +17,7 @@ interface Options {
     autoReconnect?: boolean;
 }
 
-export class Client extends (EventEmitter as unknown as new () => TypedEmitter<ClientEvents>) {
+export class Client extends EventEmitter {
     device: Device;
     options: Options;
 
