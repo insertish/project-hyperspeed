@@ -52,7 +52,7 @@ async fn main() -> std::io::Result<()> {
                 // the ROUTERS cell. If we're careful we probably won't need to replace this.
                 let routers = ROUTERS.get().unwrap();
                 let mut routers = routers.write().unwrap();
-                routers.insert(channel_id, router.clone());
+                routers.insert(channel_id.to_string(), router.clone());
                 drop(routers);
 
                 // Launch UDP ingest server
