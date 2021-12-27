@@ -1,4 +1,6 @@
 use std::str::FromStr;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use async_std::{io, task};
 use async_std::prelude::*;
@@ -7,13 +9,14 @@ use async_std::net::{TcpListener, TcpStream};
 
 use log::{debug, error, info, trace};
 
-use crate::protocol::{Audio, FtlCommand, FtlError, FtlHandshake, FtlHandshakeFinalised, FtlResponse, Video};
+use crate::protocol::{FtlCommand, FtlError, FtlHandshake, FtlHandshakeFinalised, FtlResponse};
 use crate::util;
 
 pub struct IngestClient {
     channel_id: Option<String>,
     hmac_payload: String,
-    handshake: FtlHandshake
+    handshake: FtlHandshake,
+    should_stop: Arc<AtomicBool>
 }
 
 #[async_trait]
@@ -31,44 +34,49 @@ pub trait IngestServer {
                 let mut client = IngestClient {
                     channel_id: None,
                     hmac_payload: util::generate_hmac(),
-                    handshake: FtlHandshake::default()
+                    handshake: FtlHandshake::default(),
+                    should_stop: Arc::new(AtomicBool::new(false)),
                 };
 
                 // Socket reader
                 let mut reader = reader.bytes();
                 let mut buffer = Vec::with_capacity(128);
                 while let Some(byte) = reader.next().await {
-                    let byte = byte.expect("Failed to read byte.");
-                    match byte {
-                        b'\n' => {
-                            if buffer.len() > 0 {
-                                if let Ok(payload) = std::str::from_utf8(&buffer) {
-                                    if let Ok(command) = FtlCommand::from_str(payload) {
-                                        if let Err(error) = self.handler(&mut client, writer, command).await {
-                                            if error.is_err() {
-                                                error!("Failed to execute FTL command. {:?}", error);
-                                            }
+                    if let Ok(byte) = byte {
+                        match byte {
+                            b'\n' => {
+                                if buffer.len() > 0 {
+                                    if let Ok(payload) = std::str::from_utf8(&buffer) {
+                                        if let Ok(command) = FtlCommand::from_str(payload) {
+                                            if let Err(error) = self.handler(&mut client, writer, command).await {
+                                                if error.is_err() {
+                                                    error!("Failed to execute FTL command. {:?}", error);
+                                                }
 
-                                            // We should disconnect now to avoid issues.
-                                            continue;
+                                                client.should_stop.store(true, Ordering::Relaxed);
+                                                break;
+                                            }
+                                        } else {
+                                            error!("Failed to deserialise FTL command. {}", payload);
                                         }
                                     } else {
-                                        error!("Failed to deserialise FTL command. {}", payload);
+                                        error!("Failed to convert buffer to UTF8 string.");
                                     }
-                                } else {
-                                    error!("Failed to convert buffer to UTF8 string.");
-                                }
 
-                                buffer.clear();
+                                    buffer.clear();
+                                }
                             }
+                            // Ignore carriage returns in our implementation.
+                            b'\r' => continue,
+                            byte => buffer.push(byte)
                         }
-                        // Ignore carriage returns in our implementation.
-                        b'\r' => continue,
-                        byte => buffer.push(byte)
+                    } else {
+                        error!("Failed to read anymore bytes from client.");
+                        break;
                     }
                 }
 
-                info!("Remote client disconnected.");
+                info!("Remote FTL client disconnected.");
                 stream.shutdown(std::net::Shutdown::Both).ok();
             });
         }
@@ -127,7 +135,7 @@ pub trait IngestServer {
             FtlCommand::Dot => {
                 if let Some(channel_id) = &client.channel_id {
                     let handshake = client.handshake.clone().finalise()?;
-                    let udp_port = self.allocate_ingest(channel_id, handshake)
+                    let udp_port = self.allocate_ingest(channel_id, handshake, client.should_stop.clone())
                         .await.map_err(|_| FtlError::ExternalError)?;
                     
                     debug!("Client is about to begin stream. Allocated port {}.", udp_port);
@@ -161,5 +169,5 @@ pub trait IngestServer {
     }
 
     async fn get_stream_key(&self, channel_id: &str) -> Result<String, ()>;
-    async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised) -> Result<u16, ()>;
+    async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, should_stop: Arc<AtomicBool>) -> Result<u16, ()>;
 }

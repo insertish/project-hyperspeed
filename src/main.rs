@@ -5,7 +5,8 @@ use hyperspeed_broadcast::rtc::workers::WorkerPool;
 use hyperspeed_broadcast::signaling::websocket::StreamInformation;
 use hyperspeed_broadcast::rtc::routers::{DataSource, HyperspeedRouter};
 
-use std::sync::RwLock;
+use std::sync::atomic::AtomicBool;
+use std::sync::{RwLock, Arc};
 use std::collections::HashMap;
 use once_cell::sync::OnceCell;
 
@@ -32,7 +33,7 @@ async fn main() -> std::io::Result<()> {
             }
         }
 
-        async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised) -> Result<u16, ()> {
+        async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, should_stop: Arc<AtomicBool>) -> Result<u16, ()> {
             let port = match channel_id {
                 "77" => 65534,
                 "78" => 65535,
