@@ -9,7 +9,7 @@ static WORKER_POOL: OnceCell<WorkerPool> = OnceCell::new();
 
 #[derive(Debug)]
 pub struct WorkerPool {
-    manager: WorkerManager,
+    _manager: WorkerManager,
     worker: Worker,
 }
 
@@ -34,7 +34,7 @@ impl WorkerPool {
         let worker = manager.create_worker(settings).await.unwrap();
         debug!("Initialized worker pool");
         WorkerPool {
-            manager,
+            _manager: manager,
             worker,
         }
     }

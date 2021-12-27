@@ -1,5 +1,3 @@
-use log::info;
-use mediasoup::rtp_parameters::MediaKind;
 use mediasoup::router::{Router, RouterOptions};
 use mediasoup::producer::{Producer, ProducerId};
 use ftl_protocol::protocol::FtlHandshakeFinalised;

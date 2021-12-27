@@ -143,7 +143,6 @@ pub trait SignalingServer {
                                     consumer.resume().await.unwrap();
                                 }
                             }
-                            _ => {}
                         }
                     }
                 }

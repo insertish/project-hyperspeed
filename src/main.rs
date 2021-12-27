@@ -82,7 +82,7 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    task::spawn(MySignalingServer {}.launch("0.0.0.0:9050".to_string()));
+    task::spawn(MySignalingServer {}.launch("0.0.0.0:9050", "192.168.0.10"));
     MyIngestServer {}.launch("0.0.0.0:8084".to_string()).await?;
 
     Ok(())
