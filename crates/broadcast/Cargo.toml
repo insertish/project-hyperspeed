@@ -4,7 +4,7 @@ description = "FTL media ingest server and WebSocket signaling server."
 homepage = "https://hyperspeed.cli.rs"
 documentation = "https://hyperspeed.cli.rs/components/broadcast"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.4"
+version = "0.0.6"
 license = "AGPL-3.0"
 edition = "2018"
 
@@ -12,7 +12,7 @@ edition = "2018"
 
 [features]
 rtc = [ "once_cell", "mediasoup" ]
-ingest = [ "rtc", "async-trait", "async-std", "rtp", "webrtc-util" ]
+ingest = [ "rtc", "async-trait", "async-std", "rtp", "webrtc-util", "bytes" ]
 signaling = [ "rtc", "futures", "async-std", "async-trait", "async-tungstenite", "serde", "serde_json" ]
 default = [ "rtc", "ingest", "signaling" ]
 
@@ -22,6 +22,7 @@ ftl-protocol = "0.0.3"
 
 # misc
 log = "0.4"
+bytes = { version = "1.1.0", optional = true }
 futures = { version = "0.3.15", optional = true }
 once_cell = { version = "1.8.0", optional = true }
 

@@ -35,6 +35,7 @@ impl HyperspeedRouter {
                 
                 info!("Created new UDP server on {}", addr);
                 let socket = UdpSocket::bind(addr).await?;
+                // https://stackoverflow.com/a/58161511
                 let mut buf = vec![0u8; 4096];
                 let duration = Duration::from_millis(500);
                 loop {
@@ -45,8 +46,22 @@ impl HyperspeedRouter {
                     if let Ok(packet) = future::timeout(duration, socket.recv_from(&mut buf)).await {
                         let (amt, _src) = packet?;
                         // ! FIXME: we should validate _src is the same as the address of the FTL peer
-                
-                        use rtp::packet::Packet;
+
+                        // Fast packet validation
+                        if amt > 2 {
+                            let payload_type = buf[1] & 0b1111111;
+                            if video_payload_type == payload_type {
+                                if let Some(video) = video_producer {
+                                    video.send(bytes::Bytes::copy_from_slice(&buf[0..amt])).await.unwrap();
+                                }
+                            } else if audio_payload_type == payload_type {
+                                if let Some(audio) = audio_producer {
+                                    audio.send(bytes::Bytes::copy_from_slice(&buf[0..amt])).await.unwrap();
+                                }
+                            }
+                        }
+
+                        /*use rtp::packet::Packet;
                         use webrtc_util::marshal::{Marshal, Unmarshal};
                 
                         if let Ok(packet) = Packet::unmarshal(&mut &buf[..amt]) {
@@ -62,7 +77,7 @@ impl HyperspeedRouter {
                                     audio.send(packet.marshal().unwrap()).await.unwrap();
                                 }
                             }
-                        }
+                        }*/
                     }
                 }
             }
