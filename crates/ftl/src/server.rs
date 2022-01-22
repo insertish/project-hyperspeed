@@ -53,7 +53,6 @@ pub trait IngestServer {
                                                     error!("Failed to execute FTL command. {:?}", error);
                                                 }
 
-                                                client.should_stop.store(true, Ordering::Relaxed);
                                                 break;
                                             }
                                         } else {
@@ -77,6 +76,7 @@ pub trait IngestServer {
                 }
 
                 info!("Remote FTL client disconnected.");
+                client.should_stop.store(true, Ordering::Relaxed);
                 stream.shutdown(std::net::Shutdown::Both).ok();
             });
         }
