@@ -53,6 +53,14 @@ pub trait IngestServer {
                                                     error!("Failed to execute FTL command. {:?}", error);
                                                 }
 
+                                                writer.write(
+                                                    error
+                                                        .to_string()
+                                                        .as_bytes()
+                                                )
+                                                .await
+                                                .ok();
+
                                                 break;
                                             }
                                         } else {
@@ -103,7 +111,7 @@ pub trait IngestServer {
             FtlCommand::Connect { channel_id, hashed_hmac_payload } => {
                 debug!("Client is connecting, attempting to stream to {}.", &channel_id);
                 let known_key = self.get_stream_key(&channel_id)
-                    .await.map_err(|_| FtlError::ExternalError)?;
+                    .await.map_err(|_| FtlError::InvalidStreamKey)?;
     
                 // * Key starts with $, omit and decode.
                 let client_hash = hex::decode(hashed_hmac_payload[1..].to_string())
@@ -136,7 +144,7 @@ pub trait IngestServer {
                 if let Some(channel_id) = &client.channel_id {
                     let handshake = client.handshake.clone().finalise()?;
                     let udp_port = self.allocate_ingest(channel_id, handshake, client.should_stop.clone())
-                        .await.map_err(|_| FtlError::ExternalError)?;
+                        .await.map_err(|_| FtlError::AllocateError)?;
                     
                     debug!("Client is about to begin stream. Allocated port {}.", udp_port);
                     writer.write(
@@ -149,7 +157,7 @@ pub trait IngestServer {
 
                     Ok(())
                 } else {
-                    Err(FtlError::Unauthenticated)
+                    Err(FtlError::InvalidStreamKey)
                 }
             }
             FtlCommand::Ping { channel_id } => {
