@@ -280,9 +280,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "bytes"
-version = "1.0.1"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b700ce4376041dcd0a327fd0097c41095743c4c8af8887265942faf1100bd040"
+checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "cache-padded"
@@ -398,9 +398,9 @@ dependencies = [
 
 [[package]]
 name = "ftl-protocol"
-version = "0.0.3"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f7fc23ee3b0715074dc72c469134748d586701389a1e415486d4be4e7f37d1e"
+checksum = "a7440f61c6f28b481b12cfe765bcc4579311097ceca5e424d9701b4fb83e36ec"
 
 [[package]]
 name = "futures"
@@ -594,11 +594,12 @@ checksum = "f3a87b616e37e93c22fb19bcd386f02f3af5ea98a25670ad0fce773de23c5e68"
 
 [[package]]
 name = "hyperspeed-broadcast"
-version = "0.0.3"
+version = "0.0.7"
 dependencies = [
  "async-std",
  "async-trait",
  "async-tungstenite",
+ "bytes",
  "ftl-protocol",
  "futures",
  "log",
