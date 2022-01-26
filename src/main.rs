@@ -29,6 +29,7 @@ async fn main() -> std::io::Result<()> {
             match channel_id {
                 "77" => Ok("ieDQxSZ7q58EEeLTvja4QKKGzndwUkVQ".to_string()),
                 "78" => Ok("ieDQxSZ7q58EEeLTvja4QKKGzndwUkVQ".to_string()),
+                "7543" => Ok("Uf3Orxx4I5qzXEsM8amlaArdUg1Buhfk".to_string()),
                 _ => unimplemented!()
             }
         }
@@ -37,6 +38,7 @@ async fn main() -> std::io::Result<()> {
             let port = match channel_id {
                 "77" => 65534,
                 "78" => 65535,
+                "7543" => 65535,
                 _ => unimplemented!()
             };
 

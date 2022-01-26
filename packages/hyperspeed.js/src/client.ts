@@ -37,6 +37,8 @@ export class Client extends EventEmitter {
     }
 
     reset() {
+        this.ws?.close();
+
         delete this.ws;
         delete this.consumerTransport;
         delete this.receiveMediaStream;
@@ -73,9 +75,11 @@ export class Client extends EventEmitter {
 					case 'Init': {
 						if (this.options.debug) console.info('Server sent us Init');
 
-						await this.device.load({
-							routerRtpCapabilities: data.router_rtp_capabilities
-						});
+                        try {
+                            await this.device.load({
+                                routerRtpCapabilities: data.router_rtp_capabilities
+                            });
+                        } catch (err) { }
 
 						if (this.options.debug) console.info('Loaded mediasoup device.');
 						
@@ -86,6 +90,15 @@ export class Client extends EventEmitter {
 
 						this.consumerTransport = this.device.createRecvTransport(data.transport);
 
+                        this.consumerTransport.on('connectionstatechange', state => {
+                            if (this.options.debug) console.log('Transport connection state:', state);
+
+                            if (state === 'disconnected') {
+                                this.reset();
+                                this.watch(channel_id);
+                            }
+                        });
+
 						this.consumerTransport.on('connect', ({ dtlsParameters: dtls_parameters }, success) => {
 							this.send({
                                 type: 'Connect',
@@ -94,6 +107,7 @@ export class Client extends EventEmitter {
 
 							this._success = success;
 						});
+
 
 						if (this.options.debug) console.info('Created consumer transport.');
 

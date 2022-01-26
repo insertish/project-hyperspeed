@@ -7,7 +7,7 @@ edition = "2018"
 
 [dependencies]
 hyperspeed-broadcast = { path = "crates/broadcast" }
-ftl-protocol = { version = "0.0.3", features = ["server"] }
+ftl-protocol = { version = "0.0.4", features = ["server"] }
 # ftl-protocol = { path = "crates/ftl", features = ["server"] }
 
 once_cell = "1.8.0"

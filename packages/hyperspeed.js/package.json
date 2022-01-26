@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "hyperspeed.js",
   "version": "0.0.5",
   "description": "Library for connecting to Hyperspeed streams.",
@@ -15,7 +16,8 @@
     "mediasoup-client": "^3.6.36"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "build:watch": "tsc --watch"
   },
   "files": [
     "dist",
