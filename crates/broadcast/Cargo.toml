@@ -29,16 +29,16 @@ once_cell = { version = "1.8.0", optional = true }
 # async std
 async-trait = { version = "0.1.50", optional = true }
 async-std = { version = "1.8.0", features = ["attributes", "unstable"], optional = true }
-async-tungstenite = { version = "0.14.0", features = ["async-std-runtime"], optional = true }
+async-tungstenite = { version = "0.16.1", features = ["async-std-runtime"], optional = true }
 
 # serde
 serde_json = { version = "1.0.64", optional = true }
 serde = { version = "1.0.126", features = ["derive"], optional = true }
 
 # WebRTC
-rtp = { version = "0.2.9", optional = true }
-mediasoup = { version = "0.8.2", optional = true }
-webrtc-util = { version = "0.2.4", optional = true }
+rtp = { version = "0.6.5", optional = true }
+mediasoup = { version = "0.9.2", optional = true }
+webrtc-util = { version = "0.5.3", optional = true }
 
 [package.metadata.docs.rs]
 all-features = true

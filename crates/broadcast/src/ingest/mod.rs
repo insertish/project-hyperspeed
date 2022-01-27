@@ -52,11 +52,11 @@ impl HyperspeedRouter {
                             let payload_type = buf[1] & 0b1111111;
                             if video_payload_type == payload_type {
                                 if let Some(video) = video_producer {
-                                    video.send(bytes::Bytes::copy_from_slice(&buf[0..amt])).await.unwrap();
+                                    //video.send(buf[0..amt].to_vec()).unwrap();
                                 }
                             } else if audio_payload_type == payload_type {
                                 if let Some(audio) = audio_producer {
-                                    audio.send(bytes::Bytes::copy_from_slice(&buf[0..amt])).await.unwrap();
+                                    //audio.send(buf[0..amt].to_vec()).unwrap();
                                 }
                             }
                         }
