@@ -4,7 +4,7 @@ description = "FTL media ingest server and WebSocket signaling server."
 homepage = "https://hyperspeed.cli.rs"
 documentation = "https://hyperspeed.cli.rs/components/broadcast"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.7"
+version = "0.0.8-alpha.1"
 license = "AGPL-3.0"
 edition = "2018"
 
