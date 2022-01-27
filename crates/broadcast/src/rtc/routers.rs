@@ -1,3 +1,5 @@
+use std::net::SocketAddr;
+
 use mediasoup::router::{Router, RouterOptions};
 use mediasoup::producer::{Producer, ProducerId};
 use ftl_protocol::protocol::FtlHandshakeFinalised;
@@ -18,7 +20,7 @@ pub struct HyperspeedRouter {
 }
 
 impl HyperspeedRouter {
-    pub async fn new(channel_id: String, source: DataSource) -> HyperspeedRouter {
+    pub async fn new(channel_id: String, source: DataSource, addr: SocketAddr) -> HyperspeedRouter {
         let mut options = RouterOptions::default();
         init_codecs(&mut options, &source);
 
@@ -28,7 +30,7 @@ impl HyperspeedRouter {
             .await
             .unwrap();
 
-        let producers = init_producers(&router, &source).await;
+        let producers = init_producers(&router, &source, addr).await;
 
         HyperspeedRouter {
             router,
