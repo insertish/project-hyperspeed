@@ -1,3 +1,5 @@
+use std::net::{SocketAddr, IpAddr, Ipv4Addr};
+use std::str::FromStr;
 use async_std::task;
 use async_trait::async_trait;
 use ftl_protocol::protocol::FtlHandshakeFinalised;
@@ -46,7 +48,8 @@ async fn main() -> std::io::Result<()> {
             task::spawn_local(async move {
                 let router = HyperspeedRouter::new(
                     channel_id.to_string(),
-                    DataSource::Ftl(handshake)
+                    DataSource::Ftl(handshake),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port)
                 ).await;
 
                 // ! FIXME: questionable code
@@ -58,7 +61,7 @@ async fn main() -> std::io::Result<()> {
                 drop(routers);
 
                 // Launch UDP ingest server
-                router.launch_ingest(format!("0.0.0.0:{}", port), should_stop).await.ok();
+                router.launch_ingest(should_stop).await;
                 
                 // and drop it
                 let routers = ROUTERS.get().unwrap();

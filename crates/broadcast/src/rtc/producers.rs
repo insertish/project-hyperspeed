@@ -1,6 +1,8 @@
 use std::num::{NonZeroU32, NonZeroU8};
+use std::net::SocketAddr;
 
-use mediasoup::direct_transport::DirectTransportOptions;
+use mediasoup::plain_transport::PlainTransportOptions;
+use mediasoup::prelude::TransportListenIp;
 use mediasoup::producer::{Producer, ProducerOptions};
 use mediasoup::router::Router;
 use mediasoup::transport::Transport;
@@ -10,17 +12,24 @@ use crate::rtc::codecs::{AudioCodec, VideoCodec};
 
 use super::routers::DataSource;
 
-pub async fn init_producers(router: &Router, source: &DataSource) -> Vec<Producer> {
+pub async fn init_producers(router: &Router, source: &DataSource, addr: SocketAddr) -> Vec<Producer> {
     let mut producers = Vec::new();
 
     match source {
         DataSource::Ftl(handshake) => {
             // Prepare transport options
-            let transport_options = DirectTransportOptions::default();
+            let listen_ip = TransportListenIp {
+                ip: addr.ip(),
+                announced_ip: None,
+            };
+            let mut transport_options = PlainTransportOptions::new(listen_ip);
+            transport_options.port = Some(addr.port());
+            transport_options.rtcp_mux = true;
+            transport_options.comedia = true;
 
-            // Create direct transport
-            let direct_transport = router
-                .create_direct_transport(transport_options)
+            // Create plain transport
+            let plain_transport = router
+                .create_plain_transport(transport_options)
                 .await.unwrap();
 
             // Initialise video producer
@@ -47,7 +56,7 @@ pub async fn init_producers(router: &Router, source: &DataSource) -> Vec<Produce
                 ];
 
                 producers.push(
-                    direct_transport.produce(
+                    plain_transport.produce(
                         ProducerOptions::new(MediaKind::Video, video_rtp_params)
                     ).await.unwrap()
                 );
@@ -78,7 +87,7 @@ pub async fn init_producers(router: &Router, source: &DataSource) -> Vec<Produce
                 ];
 
                 producers.push(
-                    direct_transport.produce(
+                    plain_transport.produce(
                         ProducerOptions::new(MediaKind::Audio, audio_rtp_params)
                     ).await.unwrap()
                 );
