@@ -632,7 +632,7 @@ dependencies = [
 
 [[package]]
 name = "hyperspeed-broadcast"
-version = "0.0.8-alpha.1"
+version = "0.0.8"
 dependencies = [
  "async-std",
  "async-trait",
