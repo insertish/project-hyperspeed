@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use async_tungstenite::tungstenite::Message;
 use futures::{StreamExt, TryStreamExt, SinkExt};
-use async_std::net::TcpListener;
+use async_std::{net::TcpListener, sync::RwLock};
 use mediasoup::{consumer::ConsumerOptions, data_structures::TransportListenIp, producer::ProducerId, router::Router, webrtc_transport::{TransportListenIps, WebRtcTransportOptions, WebRtcTransportRemoteParameters}};
 use mediasoup::transport::Transport;
 use async_trait::async_trait;
@@ -16,6 +16,32 @@ pub struct StreamInformation {
     pub producers: Vec<ProducerId>
 }
 
+lazy_static! {
+    static ref VIEWERS: RwLock<HashMap<String, HashSet<String>>> = RwLock::new(HashMap::new());
+}
+
+async fn viewers_start(channel: String, ip: String) {
+    let mut viewers = VIEWERS.write().await;
+    if !viewers.contains_key(&channel) {
+        viewers.insert(channel.clone(), HashSet::new());
+    }
+
+    if let Some(set) = viewers.get_mut(&channel) {
+        set.insert(ip);
+    }
+}
+
+async fn viewers_stop(channel: String, ip: String) {
+    let mut viewers = VIEWERS.write().await;
+    if let Some(set) = viewers.get_mut(&channel) {
+        set.remove(&ip);
+    }
+}
+
+async fn viewers_count(channel: String) -> usize {
+    VIEWERS.read().await.get(&channel).map(|x| x.len()).unwrap_or_else(|| 0)
+}
+
 #[async_trait]
 pub trait SignalingServer {
     async fn launch(&'static self, addr: &'static str, announced_ip: &'static str) {
@@ -25,7 +51,8 @@ pub trait SignalingServer {
         while let Ok((stream, _)) = listener.accept().await {
             task::spawn_local(async move {
                 let addr = stream.peer_addr().unwrap();
-                info!("User connected: {}", addr);
+                let id = nanoid::nanoid!(32);
+                info!("User connected: {addr} (assigned id {id})");
 
                 let ws = async_tungstenite::accept_async(stream)
                     .await.unwrap();
@@ -50,7 +77,7 @@ pub trait SignalingServer {
                 }
 
                 let channel_id = channel_id.unwrap();
-                let stream_info = self.get_stream(channel_id).await;
+                let stream_info = self.get_stream(channel_id.clone()).await;
 
                 if stream_info.is_none() {
                     // ! FIXME: throw error; not live here
@@ -88,63 +115,86 @@ pub trait SignalingServer {
                 let mut consumers = HashMap::new();
                 let mut client_rtp_capabilities = None;
 
-                while let Ok(message) = read.try_next().await {
-                    if let Message::Text(text) = message.unwrap() {
-                        let msg: ServerboundMessage = serde_json::from_str(&text).unwrap();
-                        match msg {
-                            ServerboundMessage::Begin { .. } => {},
-                            ServerboundMessage::Init { rtp_capabilities } => {
-                                client_rtp_capabilities = Some(rtp_capabilities);
-                            },
-                            ServerboundMessage::Connect { dtls_parameters } => {
-                                consumer_transport
-                                    .connect(WebRtcTransportRemoteParameters { dtls_parameters })
-                                    .await
-                                    .unwrap();
-                                
-                                write.send(Message::Text(
-                                    serde_json::to_string(&ClientboundMessage::Connected)
-                                    .unwrap()
-                                ))
-                                .await.unwrap();
-                            },
-                            ServerboundMessage::Consume => {
-                                let mut consume = vec![];
-                                for producer_id in &producers {
-                                    let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
-                                    let mut options = ConsumerOptions::new(*producer_id, rtp_capabilities.clone());
-                                    options.paused = true;
+                'disconnect: while let Ok(message) = read.try_next().await {
+                    if let Some(message) = message {
+                        if let Message::Text(text) = message {
+                            if let Ok(msg) = serde_json::from_str(&text) {
+                                match msg {
+                                    ServerboundMessage::Begin { .. } => {},
+                                    ServerboundMessage::Init { rtp_capabilities } => {
+                                        client_rtp_capabilities = Some(rtp_capabilities);
+                                    },
+                                    ServerboundMessage::Connect { dtls_parameters } => {
+                                        if consumer_transport
+                                            .connect(WebRtcTransportRemoteParameters { dtls_parameters })
+                                            .await
+                                            .is_err() {
+                                            break 'disconnect;
+                                        }
+                                        
+                                        if write.send(Message::Text(
+                                            serde_json::to_string(&ClientboundMessage::Connected)
+                                            .unwrap()
+                                        ))
+                                        .await
+                                        .is_err() {
+                                            break 'disconnect;
+                                        }
 
-                                    let consumer = consumer_transport.consume(options).await.unwrap();
-                                    
-                                    let id = consumer.id();
-                                    let kind = consumer.kind();
-                                    let rtp_parameters = consumer.rtp_parameters().clone();
+                                        viewers_start(channel_id.clone(), id.clone()).await;
+                                    },
+                                    ServerboundMessage::Consume => {
+                                        let mut consume = vec![];
+                                        for producer_id in &producers {
+                                            let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
+                                            let mut options = ConsumerOptions::new(*producer_id, rtp_capabilities.clone());
+                                            options.paused = true;
 
-                                    consumers.insert(id, consumer);
-                                    consume.push(Consume {
-                                        id,
-                                        producer_id: *producer_id,
-                                        kind,
-                                        rtp_parameters
-                                    });
+                                            let consumer = consumer_transport.consume(options).await.unwrap();
+                                            
+                                            let id = consumer.id();
+                                            let kind = consumer.kind();
+                                            let rtp_parameters = consumer.rtp_parameters().clone();
+
+                                            consumers.insert(id, consumer);
+                                            consume.push(Consume {
+                                                id,
+                                                producer_id: *producer_id,
+                                                kind,
+                                                rtp_parameters
+                                            });
+                                        }
+                                        
+                                        write.send(Message::Text(
+                                            serde_json::to_string(&ClientboundMessage::Consuming {
+                                                consume
+                                            })
+                                            .unwrap()
+                                        ))
+                                        .await.unwrap();
+                                    },
+                                    ServerboundMessage::Resume { id } => {
+                                        if let Some(consumer) = consumers.get(&id).cloned() {
+                                            consumer.resume().await.unwrap();
+                                        }
+                                    },
+                                    ServerboundMessage::PollConnectedViewers => {
+                                        write.send(Message::Text(
+                                            serde_json::to_string(&ClientboundMessage::ViewerCount {
+                                                count: viewers_count(channel_id.clone()).await
+                                            })
+                                            .unwrap()
+                                        ))
+                                        .await.unwrap();
+                                    }
                                 }
-                                
-                                write.send(Message::Text(
-                                    serde_json::to_string(&ClientboundMessage::Consuming {
-                                        consume
-                                    })
-                                    .unwrap()
-                                ))
-                                .await.unwrap();
-                            },
-                            ServerboundMessage::Resume { id } => {
-                                if let Some(consumer) = consumers.get(&id).cloned() {
-                                    consumer.resume().await.unwrap();
-                                }
+                            } else {
+                                break 'disconnect
                             }
                         }
                     }
+
+                    viewers_stop(channel_id.clone(), id.clone()).await;
                 }
             });
         }

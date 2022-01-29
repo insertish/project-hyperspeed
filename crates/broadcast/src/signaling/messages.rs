@@ -30,7 +30,8 @@ pub enum ServerboundMessage {
     Consume,
     Resume {
         id: ConsumerId
-    }
+    },
+    PollConnectedViewers,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,5 +55,8 @@ pub enum ClientboundMessage {
     #[serde(rename_all = "camelCase")]
     Consuming {
         consume: Vec<Consume>
-    }
+    },
+    ViewerCount {
+        count: usize
+    },
 }
