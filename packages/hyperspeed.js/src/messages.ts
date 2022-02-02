@@ -30,6 +30,8 @@ export type ServerboundMessage = (
     } | {
         type: 'Resume',
         id: string
+    } | {
+        type: 'PollConnectedViewers'
     }
 )
 
@@ -44,5 +46,8 @@ export type ClientboundMessage = (
     } | {
         type: 'Consuming',
         consume: Consume[]
+    } | {
+        type: 'ViewerCount',
+        count: number
     }
 )

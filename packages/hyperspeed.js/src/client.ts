@@ -7,6 +7,7 @@ import EventEmitter from 'events';
 interface ClientEvents {
     trackCreated: (track: MediaStreamTrack) => void,
     streamUpdated: (stream: MediaStream) => void,
+    viewerCount: (count: number) => void,
 }
 
 interface Options {
@@ -14,6 +15,7 @@ interface Options {
 
     debug?: boolean;
     manageStream?: boolean;
+    trackViewers?: boolean;
     autoReconnect?: boolean;
 }
 
@@ -22,6 +24,7 @@ export class Client extends EventEmitter {
     options: Options;
 
     private ws?: WebSocket;
+    private viewerCountChecker?: number;
     private consumerTransport?: Transport;
     private receiveMediaStream?: MediaStream;
 
@@ -32,16 +35,19 @@ export class Client extends EventEmitter {
         this.device = new Device();
         this.options = {
             manageStream: true,
+            trackViewers: true,
             ...options
         };
     }
 
     reset() {
         this.ws?.close();
+        clearInterval(this.viewerCountChecker);
 
         delete this.ws;
         delete this.consumerTransport;
         delete this.receiveMediaStream;
+        delete this.viewerCountChecker;
     }
 
     send(data: ServerboundMessage) {
@@ -64,6 +70,14 @@ export class Client extends EventEmitter {
                 this.reset();
                 this.watch(channel_id);
             };
+        }
+
+        if (this.options.trackViewers) {
+            this.send({ type: 'PollConnectedViewers' });
+
+            this.viewerCountChecker = setInterval(() => {
+                this.send({ type: 'PollConnectedViewers' });
+            }, 5e3) as unknown as number;
         }
 
 		this.ws.onmessage = async e => {
@@ -148,6 +162,10 @@ export class Client extends EventEmitter {
 						this._success?.();
 						break;
 					}
+                    case 'ViewerCount': {
+                        this.emit('viewerCount', data.count);
+                        break;
+                    }
 				}
 			}
 		};

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "hyperspeed.js",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Library for connecting to Hyperspeed streams.",
   "main": "dist/index.js",
   "homepage": "https://hyperspeed.cli.rs",
