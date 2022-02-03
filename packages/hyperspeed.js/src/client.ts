@@ -72,14 +72,6 @@ export class Client extends EventEmitter {
             };
         }
 
-        if (this.options.trackViewers) {
-            this.send({ type: 'PollConnectedViewers' });
-
-            this.viewerCountChecker = setInterval(() => {
-                this.send({ type: 'PollConnectedViewers' });
-            }, 5e3) as unknown as number;
-        }
-
 		this.ws.onmessage = async e => {
 			if (typeof e.data === 'string') {
 				const data = JSON.parse(e.data) as ClientboundMessage;
@@ -128,6 +120,14 @@ export class Client extends EventEmitter {
 						this.send({
                             type: 'Consume'
                         });
+                        
+                        if (this.options.trackViewers) {
+                            this.send({ type: 'PollConnectedViewers' });
+                
+                            this.viewerCountChecker = setInterval(() => {
+                                this.send({ type: 'PollConnectedViewers' });
+                            }, 5e3) as unknown as number;
+                        }
 
 						break;
 					}
