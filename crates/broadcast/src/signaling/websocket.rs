@@ -72,10 +72,6 @@ pub trait SignalingServer {
                     }
                 }
 
-                if channel_id.is_none() {
-                    return;
-                }
-
                 let channel_id = channel_id.unwrap();
                 let stream_info = self.get_stream(channel_id.clone()).await;
 
@@ -115,87 +111,85 @@ pub trait SignalingServer {
                 let mut consumers = HashMap::new();
                 let mut client_rtp_capabilities = None;
 
-                'disconnect: while let Ok(message) = read.try_next().await {
-                    if let Some(message) = message {
-                        if let Message::Text(text) = message {
-                            if let Ok(msg) = serde_json::from_str(&text) {
-                                match msg {
-                                    ServerboundMessage::Begin { .. } => {},
-                                    ServerboundMessage::Init { rtp_capabilities } => {
-                                        client_rtp_capabilities = Some(rtp_capabilities);
-                                    },
-                                    ServerboundMessage::Connect { dtls_parameters } => {
-                                        if consumer_transport
-                                            .connect(WebRtcTransportRemoteParameters { dtls_parameters })
-                                            .await
-                                            .is_err() {
-                                            break 'disconnect;
-                                        }
-                                        
-                                        if write.send(Message::Text(
-                                            serde_json::to_string(&ClientboundMessage::Connected)
-                                            .unwrap()
-                                        ))
+                'disconnect: while let Ok(Some(message)) = read.try_next().await {
+                    if let Message::Text(text) = message {
+                        if let Ok(msg) = serde_json::from_str(&text) {
+                            match msg {
+                                ServerboundMessage::Begin { .. } => {},
+                                ServerboundMessage::Init { rtp_capabilities } => {
+                                    client_rtp_capabilities = Some(rtp_capabilities);
+                                },
+                                ServerboundMessage::Connect { dtls_parameters } => {
+                                    if consumer_transport
+                                        .connect(WebRtcTransportRemoteParameters { dtls_parameters })
                                         .await
                                         .is_err() {
-                                            break 'disconnect;
-                                        }
-
-                                        viewers_start(channel_id.clone(), id.clone()).await;
-                                    },
-                                    ServerboundMessage::Consume => {
-                                        let mut consume = vec![];
-                                        for producer_id in &producers {
-                                            let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
-                                            let mut options = ConsumerOptions::new(*producer_id, rtp_capabilities.clone());
-                                            options.paused = true;
-
-                                            let consumer = consumer_transport.consume(options).await.unwrap();
-                                            
-                                            let id = consumer.id();
-                                            let kind = consumer.kind();
-                                            let rtp_parameters = consumer.rtp_parameters().clone();
-
-                                            consumers.insert(id, consumer);
-                                            consume.push(Consume {
-                                                id,
-                                                producer_id: *producer_id,
-                                                kind,
-                                                rtp_parameters
-                                            });
-                                        }
-                                        
-                                        write.send(Message::Text(
-                                            serde_json::to_string(&ClientboundMessage::Consuming {
-                                                consume
-                                            })
-                                            .unwrap()
-                                        ))
-                                        .await.unwrap();
-                                    },
-                                    ServerboundMessage::Resume { id } => {
-                                        if let Some(consumer) = consumers.get(&id).cloned() {
-                                            consumer.resume().await.unwrap();
-                                        }
-                                    },
-                                    ServerboundMessage::PollConnectedViewers => {
-                                        write.send(Message::Text(
-                                            serde_json::to_string(&ClientboundMessage::ViewerCount {
-                                                count: viewers_count(channel_id.clone()).await
-                                            })
-                                            .unwrap()
-                                        ))
-                                        .await.unwrap();
+                                        break 'disconnect;
                                     }
+                                    
+                                    if write.send(Message::Text(
+                                        serde_json::to_string(&ClientboundMessage::Connected)
+                                        .unwrap()
+                                    ))
+                                    .await
+                                    .is_err() {
+                                        break 'disconnect;
+                                    }
+
+                                    viewers_start(channel_id.clone(), id.clone()).await;
+                                },
+                                ServerboundMessage::Consume => {
+                                    let mut consume = vec![];
+                                    for producer_id in &producers {
+                                        let rtp_capabilities = client_rtp_capabilities.as_ref().unwrap();
+                                        let mut options = ConsumerOptions::new(*producer_id, rtp_capabilities.clone());
+                                        options.paused = true;
+
+                                        let consumer = consumer_transport.consume(options).await.unwrap();
+                                        
+                                        let id = consumer.id();
+                                        let kind = consumer.kind();
+                                        let rtp_parameters = consumer.rtp_parameters().clone();
+
+                                        consumers.insert(id, consumer);
+                                        consume.push(Consume {
+                                            id,
+                                            producer_id: *producer_id,
+                                            kind,
+                                            rtp_parameters
+                                        });
+                                    }
+                                    
+                                    write.send(Message::Text(
+                                        serde_json::to_string(&ClientboundMessage::Consuming {
+                                            consume
+                                        })
+                                        .unwrap()
+                                    ))
+                                    .await.unwrap();
+                                },
+                                ServerboundMessage::Resume { id } => {
+                                    if let Some(consumer) = consumers.get(&id).cloned() {
+                                        consumer.resume().await.unwrap();
+                                    }
+                                },
+                                ServerboundMessage::PollConnectedViewers => {
+                                    write.send(Message::Text(
+                                        serde_json::to_string(&ClientboundMessage::ViewerCount {
+                                            count: viewers_count(channel_id.clone()).await
+                                        })
+                                        .unwrap()
+                                    ))
+                                    .await.unwrap();
                                 }
-                            } else {
-                                break 'disconnect
                             }
+                        } else {
+                            break 'disconnect
                         }
                     }
-
-                    viewers_stop(channel_id.clone(), id.clone()).await;
                 }
+
+                viewers_stop(channel_id.clone(), id.clone()).await;
             });
         }
     }
