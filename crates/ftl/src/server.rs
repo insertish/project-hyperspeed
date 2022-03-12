@@ -177,5 +177,5 @@ pub trait IngestServer {
     }
 
     async fn get_stream_key(&self, channel_id: &str) -> Result<String, ()>;
-    async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, should_stop: Arc<AtomicBool>) -> Result<u16, ()>;
+    async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, stop_signal: Receiver<()>) -> Result<u16, ()>;
 }

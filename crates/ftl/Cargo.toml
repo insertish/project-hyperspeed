@@ -4,7 +4,7 @@ description = "Common data structures for working with the Faster Than Light pro
 homepage = "https://hyperspeed.cli.rs"
 documentation = "https://hyperspeed.cli.rs/components/ftl"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.4"
+version = "0.0.5"
 license = "MIT"
 edition = "2018"
 
