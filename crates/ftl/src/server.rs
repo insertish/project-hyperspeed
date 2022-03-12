@@ -1,11 +1,10 @@
 use std::str::FromStr;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use async_std::{io, task};
 use async_std::prelude::*;
 use async_trait::async_trait;
 use async_std::net::{TcpListener, TcpStream};
+use async_std::channel::{Receiver, bounded};
 
 use log::{debug, error, info, trace};
 
@@ -16,7 +15,7 @@ pub struct IngestClient {
     channel_id: Option<String>,
     hmac_payload: String,
     handshake: FtlHandshake,
-    should_stop: Arc<AtomicBool>
+    stop_signal: Receiver<()>
 }
 
 #[async_trait]
@@ -31,11 +30,12 @@ pub trait IngestServer {
                 let (reader, writer) = &mut (&stream, &stream);
 
                 // Common data needed by client / server.
+                let (sender, receiver) = bounded(1);
                 let mut client = IngestClient {
                     channel_id: None,
                     hmac_payload: util::generate_hmac(),
                     handshake: FtlHandshake::default(),
-                    should_stop: Arc::new(AtomicBool::new(false)),
+                    stop_signal: receiver,
                 };
 
                 // Socket reader
@@ -84,7 +84,7 @@ pub trait IngestServer {
                 }
 
                 info!("Remote FTL client disconnected.");
-                client.should_stop.store(true, Ordering::Relaxed);
+                sender.send(()).await.ok();
                 stream.shutdown(std::net::Shutdown::Both).ok();
             });
         }
@@ -143,7 +143,7 @@ pub trait IngestServer {
             FtlCommand::Dot => {
                 if let Some(channel_id) = &client.channel_id {
                     let handshake = client.handshake.clone().finalise()?;
-                    let udp_port = self.allocate_ingest(channel_id, handshake, client.should_stop.clone())
+                    let udp_port = self.allocate_ingest(channel_id, handshake, client.stop_signal.clone())
                         .await.map_err(|_| FtlError::AllocateError)?;
                     
                     debug!("Client is about to begin stream. Allocated port {}.", udp_port);

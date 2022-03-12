@@ -4,7 +4,7 @@ description = "Common data structures for working with the Faster Than Light pro
 homepage = "https://hyperspeed.cli.rs"
 documentation = "https://hyperspeed.cli.rs/components/ftl"
 repository = "https://github.com/insertish/project-hyperspeed"
-version = "0.0.5"
+version = "0.0.6"
 license = "MIT"
 edition = "2018"
 
@@ -13,6 +13,7 @@ edition = "2018"
 [features]
 server = [ "log", "async-trait", "async-std", "util" ]
 util = [ "ring", "rand", "hex" ]
+default = [ "server" ]
 
 [dependencies]
 # server only
