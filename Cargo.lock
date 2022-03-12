@@ -400,9 +400,9 @@ dependencies = [
 
 [[package]]
 name = "ftl-protocol"
-version = "0.0.4"
+version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7440f61c6f28b481b12cfe765bcc4579311097ceca5e424d9701b4fb83e36ec"
+checksum = "a89a4d7b50237d0f1218514e6cdd136cb26f1af515c13470159e3c3aa5caf5ba"
 dependencies = [
  "async-std",
  "async-trait",
@@ -632,7 +632,7 @@ dependencies = [
 
 [[package]]
 name = "hyperspeed-broadcast"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "async-std",
  "async-trait",

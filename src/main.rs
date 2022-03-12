@@ -1,5 +1,4 @@
 use std::net::{SocketAddr, IpAddr, Ipv4Addr};
-use std::str::FromStr;
 use async_std::task;
 use async_trait::async_trait;
 use ftl_protocol::protocol::FtlHandshakeFinalised;
@@ -7,8 +6,8 @@ use hyperspeed_broadcast::rtc::workers::WorkerPool;
 use hyperspeed_broadcast::signaling::websocket::StreamInformation;
 use hyperspeed_broadcast::rtc::routers::{DataSource, HyperspeedRouter};
 
-use std::sync::atomic::AtomicBool;
-use std::sync::{RwLock, Arc};
+use async_std::channel::Receiver;
+use std::sync::{RwLock};
 use std::collections::HashMap;
 use once_cell::sync::OnceCell;
 
@@ -36,7 +35,7 @@ async fn main() -> std::io::Result<()> {
             }
         }
 
-        async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, should_stop: Arc<AtomicBool>) -> Result<u16, ()> {
+        async fn allocate_ingest(&self, channel_id: &str, handshake: FtlHandshakeFinalised, stop_receiver: Receiver<()>) -> Result<u16, ()> {
             let port = match channel_id {
                 "77" => 65534,
                 "78" => 65535,
@@ -61,7 +60,7 @@ async fn main() -> std::io::Result<()> {
                 drop(routers);
 
                 // Launch UDP ingest server
-                router.launch_ingest(should_stop).await;
+                stop_receiver.recv().await.unwrap();
                 
                 // and drop it
                 let routers = ROUTERS.get().unwrap();
